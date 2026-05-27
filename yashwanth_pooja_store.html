@@ -168,6 +168,12 @@
 
   /* Telugu name */
   .product-name-te { font-size:10px; color:var(--muted); margin-top:1px; }
+
+  /* Weight options */
+  .weight-options { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; justify-content:center; }
+  .weight-btn { padding:3px 7px; border-radius:12px; border:1px solid var(--border); background:var(--surface); font-size:10px; font-weight:500; cursor:pointer; transition:0.12s; font-family:'DM Sans',sans-serif; line-height:1.3; color:var(--text); }
+  .weight-btn:hover { border-color:var(--saffron); background:var(--saffron-light); color:var(--saffron); }
+  .weight-btn.added { border-color:var(--green); background:var(--green-bg); color:var(--green); }
   .name-te { color:var(--muted); font-size:11px; }
   .name-en-te { font-size:13px; }
   .name-en-te small { color:var(--muted); font-size:11px; }
@@ -223,8 +229,8 @@
     <div class="header-brand">
       <div class="header-logo">🪔</div>
       <div>
-        <div class="header-title">Yashwanth Pooja Store</div>
-        <div class="header-sub">Near Birla Mandir, Hyderabad</div>
+        <div class="header-title">Shalini Pooja Store</div>
+        <div class="header-sub">Beside Ashta Laxmi Temple, Kothapet, Hyderabad</div>
       </div>
     </div>
     <div class="header-nav">
@@ -240,9 +246,9 @@
     <div class="stat-box"><div class="stat-label">Total Sales</div><div class="stat-val orange" id="stat-sales">₹0</div></div>
     <div class="stat-box"><div class="stat-label">Cash</div><div class="stat-val cash" id="stat-cash">₹0</div></div>
     <div class="stat-box"><div class="stat-label">UPI</div><div class="stat-val upi" id="stat-upi">₹0</div></div>
-    <div class="stat-box"><div class="stat-label">Bills Today</div><div class="stat-val green" id="stat-bills">0</div></div>
+    <div class="stat-box" style="cursor:pointer" onclick="goToTab('report')"><div class="stat-label">Bills Today</div><div class="stat-val green" id="stat-bills">0</div></div>
     <div class="stat-box" style="cursor:pointer" onclick="showLowStock()"><div class="stat-label">Low Stock</div><div class="stat-val maroon" id="stat-low">3</div></div>
-    <div class="stat-box"><div class="stat-label">Customers</div><div class="stat-val gold" id="stat-customers">6</div></div>
+    <div class="stat-box" style="cursor:pointer" onclick="goToTab('customers')"><div class="stat-label">Customers</div><div class="stat-val gold" id="stat-customers">6</div></div>
   </div>
 
   <!-- BILLING -->
@@ -494,8 +500,8 @@
 const PRODUCTS = [
   {id:1,name:"Agarbatti",nameTe:"అగరబత్తి",emoji:"🪄",price:30,cost:0,cat:"Incense",stock:45,unit:"pack"},
   {id:2,name:"Camphor",nameTe:"కర్పూరం",emoji:"🕯️",price:25,cost:0,cat:"Flame",stock:60,unit:"box"},
-  {id:3,name:"Kumkum",nameTe:"కుంకుమ",emoji:"🔴",price:20,cost:0,cat:"Powder",stock:8,unit:"pack"},
-  {id:4,name:"Haldi",nameTe:"పసుపు",emoji:"🟡",price:15,cost:0,cat:"Powder",stock:12,unit:"pack"},
+  {id:3,name:"Kumkum",nameTe:"కుంకుమ",emoji:"🔴",hasWeights:true,weights:[{label:"100g",price:20},{label:"250g",price:45},{label:"500g",price:85}],cost:0,cat:"Powder",stock:8,unit:"pack"},
+  {id:4,name:"Haldi",nameTe:"పసుపు",emoji:"🟡",hasWeights:true,weights:[{label:"100g",price:15},{label:"250g",price:30},{label:"500g",price:55}],cost:0,cat:"Powder",stock:12,unit:"pack"},
   {id:5,name:"Coconut",nameTe:"కొబ్బరి కాయ",emoji:"🥥",price:25,cost:0,cat:"Offerings",stock:30,unit:"pc"},
   {id:6,name:"Flowers",nameTe:"పూలు",emoji:"🌸",price:40,cost:0,cat:"Offerings",stock:20,unit:"bunch"},
   {id:7,name:"Deepam Oil",nameTe:"దీపం నూనె",emoji:"💧",price:55,cost:0,cat:"Oil",stock:3,unit:"bottle"},
@@ -505,7 +511,7 @@ const PRODUCTS = [
   {id:11,name:"Brass Diya",nameTe:"ఇత్తడి దీపం",emoji:"🪔",price:120,cost:0,cat:"Utensils",stock:15,unit:"pc"},
   {id:12,name:"Holy Water",nameTe:"పవిత్ర జలం",emoji:"🫙",price:35,cost:0,cat:"Offerings",stock:0,unit:"bottle"},
   {id:13,name:"Neem Leaves",nameTe:"వేప ఆకులు",emoji:"🍃",price:20,cost:0,cat:"Offerings",stock:10,unit:"bunch"},
-  {id:14,name:"Vibhuti",nameTe:"విభూతి",emoji:"⚪",price:25,cost:0,cat:"Powder",stock:22,unit:"pack"},
+  {id:14,name:"Vibhuti",nameTe:"విభూతి",emoji:"⚪",hasWeights:true,weights:[{label:"100g",price:25},{label:"250g",price:50},{label:"500g",price:95}],cost:0,cat:"Powder",stock:22,unit:"pack"},
   {id:15,name:"Banana Leaf",nameTe:"అరటి ఆకు",emoji:"🍌",price:15,cost:0,cat:"Offerings",stock:2,unit:"pc"},
 ];
 
@@ -555,8 +561,19 @@ function initProducts(filter='') {
   const grid=document.getElementById('product-grid');
   const f=PRODUCTS.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()));
   grid.innerHTML=f.map(p=>{
-    const inCart=cart.find(c=>c.id===p.id);
     const disabled=p.stock===0;
+    if(p.hasWeights){
+      return `<div class="product-tile" ${disabled?'style="opacity:0.4;pointer-events:none"':''}>
+        <span class="product-emoji">${p.emoji}</span>
+        <div class="product-name">${p.name}</div>
+        <div class="product-name-te">${p.nameTe}</div>
+        <div class="weight-options">${p.weights.map(w=>{
+          const inCart=cart.find(c=>c.variantId===p.id+'-'+w.label);
+          return `<button class="weight-btn ${inCart?'added':''}" onclick="addToCartWeight(${p.id},'${w.label}')">${w.label}<br><small>₹${w.price}</small></button>`;
+        }).join('')}</div>
+      </div>`;
+    }
+    const inCart=cart.find(c=>c.variantId===String(p.id));
     return `<div class="product-tile ${inCart?'added':''}" ${disabled?'style="opacity:0.4;pointer-events:none"':''} onclick="addToCart(${p.id})">
       <span class="product-emoji">${p.emoji}</span>
       <div class="product-name">${p.name}</div>
@@ -570,17 +587,30 @@ function filterProducts(v){initProducts(v);}
 function addToCart(id) {
   const prod=PRODUCTS.find(p=>p.id===id);
   if(!prod||prod.stock===0)return;
-  const ex=cart.find(c=>c.id===id);
+  const vid=String(id);
+  const ex=cart.find(c=>c.variantId===vid);
   if(ex) ex.qty++;
-  else cart.push({...prod,qty:1});
+  else cart.push({...prod,qty:1,variantId:vid});
   renderBill(); initProducts(document.querySelector('.product-search').value);
 }
 
-function changeQty(id,delta) {
-  const item=cart.find(c=>c.id===id);
+function addToCartWeight(id, label) {
+  const prod=PRODUCTS.find(p=>p.id===id);
+  if(!prod||prod.stock===0)return;
+  const w=prod.weights.find(x=>x.label===label);
+  if(!w)return;
+  const vid=id+'-'+label;
+  const ex=cart.find(c=>c.variantId===vid);
+  if(ex) ex.qty++;
+  else cart.push({id, variantId:vid, name:prod.name+' ('+label+')', nameTe:prod.nameTe, emoji:prod.emoji, price:w.price, cost:prod.cost, unit:label, qty:1, stock:prod.stock, cat:prod.cat});
+  renderBill(); initProducts(document.querySelector('.product-search').value);
+}
+
+function changeQty(vid,delta) {
+  const item=cart.find(c=>c.variantId===vid);
   if(!item)return;
   item.qty+=delta;
-  if(item.qty<=0) cart=cart.filter(c=>c.id!==id);
+  if(item.qty<=0) cart=cart.filter(c=>c.variantId!==vid);
   renderBill(); initProducts(document.querySelector('.product-search').value);
 }
 
@@ -596,12 +626,12 @@ function renderBill() {
         <span class="product-emoji" style="font-size:18px">${c.emoji}</span>
         <span class="bill-item-name">${c.name}</span>
         <div class="bill-item-qty">
-          <button class="qty-btn" onclick="changeQty(${c.id},-1)">−</button>
+          <button class="qty-btn" onclick="changeQty('${c.variantId}',-1)">−</button>
           <span class="qty-num">${c.qty}</span>
-          <button class="qty-btn" onclick="changeQty(${c.id},1)">+</button>
+          <button class="qty-btn" onclick="changeQty('${c.variantId}',1)">+</button>
         </div>
         <span class="bill-item-total">₹${c.price*c.qty}</span>
-        <span class="bill-item-del" onclick="changeQty(${c.id},-99)">×</span>
+        <span class="bill-item-del" onclick="changeQty('${c.variantId}',-99)">×</span>
       </div>`).join('');
   }
   document.getElementById('s-sub').textContent='₹'+sub.toFixed(2);
@@ -703,8 +733,8 @@ function buildReceiptHTML(d, mode) {
   const payLabel=mode==='upi'?`📱 UPI${d.upiRef?' (Ref: '+d.upiRef+')':''}`:'💵 Cash';
   return `
     <div class="receipt-logo">
-      <div>🪔 Yashwanth Pooja Store</div>
-      <small>Near Birla Mandir, Hyderabad • 94490 XXXXX</small>
+      <div>🪔 Shalini Pooja Store</div>
+      <small>Beside Ashta Laxmi Temple, Kothapet, Hyderabad</small>
     </div>
     <hr class="receipt-divider">
     <div class="receipt-row"><span><b>${d.name}</b></span><span style="color:var(--muted)">${d.occasion||''}</span></div>
@@ -725,7 +755,7 @@ function buildWAMsg(d, mode) {
   const dateStr=d.now.toLocaleDateString('en-IN');
   const lines=d.items.map(c=>`  ${c.emoji} ${c.name} × ${c.qty} — ₹${c.price*c.qty}`).join('\n');
   const payInfo=mode==='upi'?`UPI${d.upiRef?' (Ref: '+d.upiRef+')':''}`:'Cash';
-  return `🪔 *Yashwanth Pooja Store*\nNear Birla Mandir, Hyderabad\n\n` +
+  return `🪔 *Shalini Pooja Store*\nBeside Ashta Laxmi Temple, Kothapet, Hyderabad\n\n` +
     `Bill #${billCount} | ${dateStr}, ${timeStr}\n` +
     `Customer: *${d.name}*${d.occasion?' | '+d.occasion:''}\n\n` +
     `${lines}\n\n` +
@@ -767,12 +797,12 @@ function whatsappReport() {
   const today=new Date().toLocaleDateString('en-IN');
   const sorted=Object.entries(itemSales).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const topStr=sorted.length>0?'\nTop items: '+sorted.map(([n,q])=>n+' ('+q+')').join(', '):'';
-  const msg=`🪔 *Yashwanth Pooja Store — Daily Report*\n${today}\n\n` +
+  const msg=`🪔 *Shalini Pooja Store — Daily Report*\n${today}\n\n` +
     `💰 Total Sales: ₹${salesTotal.toLocaleString('en-IN')}\n` +
     `💵 Cash: ₹${cashTotal.toLocaleString('en-IN')}\n` +
     `📱 UPI: ₹${upiTotal.toLocaleString('en-IN')}\n` +
     `🧾 Bills: ${billCount}${topStr}\n\n` +
-    `_Generated by Yashwanth Store App_`;
+    `_Generated by Shalini Store App_`;
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
@@ -802,7 +832,7 @@ function clearLowFilter() {
 
 function initInventory(filter='') {
   let items=PRODUCTS.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()));
-  if(inventoryLowFilter) items=items.filter(p=>p.stock>0&&p.stock<=5);
+  if(inventoryLowFilter) items=items.filter(p=>p.stock<=5);
   const body=document.getElementById('inv-body');
   const f=items;
   let low=0;
@@ -814,7 +844,7 @@ function initInventory(filter='') {
     return `<tr>
       <td><span style="margin-right:6px">${p.emoji}</span><span class="name-en-te">${p.name} <small>${p.nameTe}</small></span></td>
       <td style="color:var(--muted)">${p.cat}</td>
-      <td>₹${p.price}/${p.unit}</td>
+      <td>${p.hasWeights?'By weight':('₹'+p.price+'/'+p.unit)}</td>
       <td><a href="#" onclick="editCost(${p.id});return false" style="color:var(--saffron);text-decoration:none;font-weight:500">₹${p.cost||0}</a></td>
       <td>${p.stock} ${p.unit}s</td>
       <td><span class="stock-badge ${badge}">${status}</span></td>
@@ -844,6 +874,11 @@ function initCustomers() {
       <div style="font-size:11px;color:var(--muted)">Usual: <span class="occasion-tag">${c.occasion}</span></div>
     </div>`;
   }).join('');
+}
+
+function goToTab(tab) {
+  const btn = document.querySelector(`.nav-btn[onclick*="${tab}"]`);
+  if(btn) switchTab(tab, btn);
 }
 
 function switchTab(tab,btn) {
