@@ -241,7 +241,7 @@
     <div class="stat-box"><div class="stat-label">Cash</div><div class="stat-val cash" id="stat-cash">₹0</div></div>
     <div class="stat-box"><div class="stat-label">UPI</div><div class="stat-val upi" id="stat-upi">₹0</div></div>
     <div class="stat-box"><div class="stat-label">Bills Today</div><div class="stat-val green" id="stat-bills">0</div></div>
-    <div class="stat-box"><div class="stat-label">Low Stock</div><div class="stat-val maroon" id="stat-low">3</div></div>
+    <div class="stat-box" style="cursor:pointer" onclick="showLowStock()"><div class="stat-label">Low Stock</div><div class="stat-val maroon" id="stat-low">3</div></div>
     <div class="stat-box"><div class="stat-label">Customers</div><div class="stat-val gold" id="stat-customers">6</div></div>
   </div>
 
@@ -314,6 +314,10 @@
       <div class="inv-toolbar">
         <input type="text" class="inv-search" placeholder="Search inventory..." oninput="filterInventory(this.value)" />
         <button class="btn-add-item">+ Add Item</button>
+      </div>
+      <div id="low-stock-banner" style="display:none;background:var(--saffron-light);border:1px solid var(--saffron);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;align-items:center;justify-content:space-between">
+        <span>🔴 Showing low-stock items (stock ≤ 5)</span>
+        <a href="#" onclick="clearLowFilter();return false" style="color:var(--saffron);font-weight:500;text-decoration:none">Show all items →</a>
       </div>
       <div class="section-card">
         <table class="inv-table">
@@ -515,7 +519,7 @@ const CUSTOMERS = [
 ];
 
 let cart=[], payMode='cash', salesTotal=0, cashTotal=0, upiTotal=0, billCount=0, transactions=[], itemSales={};
-let revPeriod='day';
+let revPeriod='day', inventoryLowFilter=false;
 
 function saveData() {
   try {
@@ -785,9 +789,22 @@ function editCost(id) {
   showToast(`Cost for ${p.name} set to ₹${n}`);
 }
 
+function showLowStock() {
+  inventoryLowFilter=true;
+  switchTab('inventory', document.querySelector('.nav-btn[onclick*="inventory"]'));
+  initInventory(document.querySelector('.inv-search')?.value||'');
+}
+
+function clearLowFilter() {
+  inventoryLowFilter=false;
+  initInventory(document.querySelector('.inv-search')?.value||'');
+}
+
 function initInventory(filter='') {
+  let items=PRODUCTS.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()));
+  if(inventoryLowFilter) items=items.filter(p=>p.stock>0&&p.stock<=5);
   const body=document.getElementById('inv-body');
-  const f=PRODUCTS.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()));
+  const f=items;
   let low=0;
   body.innerHTML=f.map(p=>{
     let badge,status;
@@ -804,8 +821,13 @@ function initInventory(filter='') {
     </tr>`;
   }).join('');
   document.getElementById('stat-low').textContent=low;
+  const banner=document.getElementById('low-stock-banner');
+  if(banner) banner.style.display=inventoryLowFilter?'flex':'none';
 }
-function filterInventory(v){initInventory(v);}
+function filterInventory(v){
+  if(inventoryLowFilter&&v.length>0) inventoryLowFilter=false;
+  initInventory(v);
+}
 
 function initCustomers() {
   document.getElementById('cust-grid').innerHTML=CUSTOMERS.map(c=>{
