@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+  html { scroll-behavior: smooth; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --saffron:#E8650A; --saffron-light:#FDF0E6; --saffron-mid:#F5A55A;
+    --maroon:#7B1F2E; --cream:#FDF8F2; --gold:#C49A3C;
+    --text:#1A1208; --muted:#7A6A55; --border:#E8DDD0; --surface:#FFFFFF;
+    --green:#2E7D52; --green-bg:#EBF5EF;
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
+  .app { display:flex; flex-direction:column; min-height:100vh; }
+  .header { background:var(--maroon); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .header-brand { display:flex; align-items:center; gap:10px; }
+  .header-logo { width:36px; height:36px; background:var(--saffron); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .header-title { font-family:'Noto Serif',serif; color:#fff; font-size:18px; font-weight:600; }
+  .header-sub { color:#FFCB8E; font-size:11px; margin-top:1px; }
+  .header-nav { display:flex; gap:4px; }
+  .nav-btn { padding:7px 14px; border-radius:6px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; background:transparent; color:rgba(255,255,255,0.65); transition:all 0.15s; text-decoration:none; }
+  .nav-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
+  .section-pad { padding:40px 24px; }
+  .section-title { font-family:'Noto Serif',serif; font-size:24px; font-weight:700; color:var(--maroon); text-align:center; margin-bottom:8px; }
+  .section-sub { text-align:center; font-size:14px; color:var(--muted); margin-bottom:28px; max-width:600px; margin-left:auto; margin-right:auto; }
+  .section-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .card-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-head h3 { font-family:'Noto Serif',serif; font-size:15px; font-weight:600; }
+  .card-body { padding:18px; }
+
+  /* Hero */
+  .hero { background:linear-gradient(135deg, var(--maroon) 0%, #9a2a3d 100%); padding:60px 24px; text-align:center; color:#fff; }
+  .hero-emoji { font-size:56px; margin-bottom:12px; display:block; }
+  .hero h1 { font-family:'Noto Serif',serif; font-size:36px; font-weight:700; margin-bottom:8px; }
+  .hero .hero-te { font-size:24px; color:#FFCB8E; font-family:'Noto Serif',serif; margin-bottom:12px; }
+  .hero p { font-size:15px; max-width:600px; margin:0 auto; opacity:0.9; line-height:1.6; }
+  .hero .hero-actions { margin-top:24px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .hero-btn { padding:10px 24px; border-radius:8px; border:none; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; text-decoration:none; transition:0.15s; }
+  .hero-btn-primary { background:var(--saffron); color:#fff; }
+  .hero-btn-primary:hover { background:#cf5608; }
+  .hero-btn-secondary { background:rgba(255,255,255,0.15); color:#fff; backdrop-filter:blur(4px); }
+  .hero-btn-secondary:hover { background:rgba(255,255,255,0.25); }
+
+  /* Inventory */
+  .inventory-bg { background:var(--cream); }
+  .inv-controls { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+  .inv-search { flex:1; min-width:200px; padding:9px 14px; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:14px; background:var(--surface); outline:none; }
+  .inv-search:focus { border-color:var(--saffron); }
+  .cat-filters { display:flex; gap:6px; flex-wrap:wrap; }
+  .cat-pill { padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:0.15s; color:var(--muted); }
+  .cat-pill:hover { border-color:var(--saffron); color:var(--saffron); }
+  .cat-pill.active { background:var(--saffron); color:#fff; border-color:var(--saffron); }
+  .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+  .product-tile { border:1px solid var(--border); border-radius:10px; padding:14px 10px; text-align:center; transition:all 0.12s; background:var(--surface); position:relative; }
+  .product-tile:hover { border-color:var(--saffron); box-shadow:0 2px 12px rgba(232,101,10,0.1); transform:translateY(-1px); }
+  .product-tile.out { opacity:0.5; }
+  .product-emoji { font-size:28px; display:block; margin-bottom:6px; }
+  .product-name { font-size:13px; font-weight:600; }
+  .product-name-te { font-size:11px; color:var(--muted); margin-top:1px; }
+  .product-price { font-size:13px; color:var(--saffron); margin-top:4px; font-weight:600; }
+  .product-price small { font-weight:400; color:var(--muted); font-size:11px; }
+  .product-weights { font-size:11px; color:var(--muted); margin-top:4px; line-height:1.5; }
+  .product-weight-item { display:inline-block; background:var(--saffron-light); padding:1px 7px; border-radius:10px; margin:1px; font-size:10px; color:var(--saffron); font-weight:500; }
+  .stock-badge { position:absolute; top:8px; right:8px; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600; }
+  .stock-low { background:#FFF3E0; color:#E65100; }
+  .stock-out { background:#FFEBEE; color:#C62828; }
+  .stock-ok { background:var(--green-bg); color:var(--green); }
+  .inv-summary { text-align:center; margin-top:20px; font-size:13px; color:var(--muted); }
+  .inv-empty { text-align:center; padding:40px 10px; color:var(--muted); font-size:14px; }
+
+  /* About */
+  .about-bg { background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .about-content { max-width:800px; margin:0 auto; }
+  .about-text { font-size:14px; line-height:1.8; color:var(--text); margin-bottom:24px; }
+  .about-text .te { color:var(--muted); display:block; margin-top:4px; }
+  .proprietors { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+  .prop-card { text-align:center; }
+  .prop-photo { width:100px; height:100px; border-radius:50%; background:var(--saffron-light); border:3px solid var(--saffron); display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:36px; color:var(--saffron); overflow:hidden; }
+  .prop-photo img { width:100%; height:100%; object-fit:cover; }
+  .prop-name { font-weight:600; font-size:14px; }
+  .prop-title { font-size:12px; color:var(--muted); }
+
+  /* Contact */
+  .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:800px; margin:0 auto; }
+  .contact-info { display:flex; flex-direction:column; gap:16px; }
+  .contact-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; }
+  .contact-icon { width:40px; height:40px; border-radius:50%; background:var(--saffron-light); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .contact-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; }
+  .contact-value { font-size:14px; font-weight:500; margin-top:1px; }
+  .contact-value a { color:var(--saffron); text-decoration:none; }
+  .contact-value a:hover { text-decoration:underline; }
+  .contact-photo-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .contact-photo-card .placeholder { height:200px; background:var(--saffron-light); display:flex; align-items:center; justify-content:center; color:var(--saffron); font-size:14px; font-weight:500; }
+  .contact-photo-card .caption { padding:10px 14px; font-size:12px; color:var(--muted); text-align:center; }
+  .wa-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; background:#25D366; color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; transition:0.15s; }
+  .wa-btn:hover { opacity:0.9; }
+
+  /* Footer */
+  .footer { background:var(--maroon); color:rgba(255,255,255,0.7); text-align:center; padding:20px 24px; font-size:13px; line-height:1.6; }
+  .footer .store-name { color:#fff; font-weight:600; font-family:'Noto Serif',serif; }
+  .footer a { color:var(--saffron-mid); text-decoration:none; }
+  .footer a:hover { text-decoration:underline; }
+
+  /* Toast */
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1A1208; color:#fff; padding:10px 20px; border-radius:8px; font-size:13px; z-index:300; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+  .toast.show { opacity:1; }
+
+  @media (max-width:768px) {
+    .hero h1 { font-size:28px; }
+    .hero .hero-te { font-size:20px; }
+    .product-grid { grid-template-columns:repeat(2,1fr); }
+    .contact-grid { grid-template-columns:1fr; }
+    .section-pad { padding:30px 16px; }
+    .header-title { font-size:15px; }
+    .nav-btn { font-size:11px; padding:6px 10px; }
+  }
+  @media (max-width:480px) {
+    .hero h1 { font-size:24px; }
+    .hero { padding:40px 16px; }
+    .product-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
+    .product-tile { padding:10px 8px; }
+    .product-emoji { font-size:24px; }
+    .header { padding:10px 14px; }
+    .header-nav { gap:2px; }
+    .nav-btn { font-size:10px; padding:5px 8px; }
+    .cat-filters { justify-content:center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-logo">🪔</div>
+      <div>
+        <div class="header-title">Shalini Pooja Store</div>
+        <div class="header-sub">Beside Ashta Laxmi Temple, Kothapet, Hyderabad</div>
+      </div>
+    </div>
+    <div class="header-nav">
+      <a class="nav-btn" href="#inventory">📦 Store</a>
+      <a class="nav-btn" href="#about">ℹ️ About</a>
+      <a class="nav-btn" href="#contact">📞 Contact</a>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <span class="hero-emoji">🪔</span>
+    <h1>Shalini Pooja Store</h1>
+    <div class="hero-te">శాలిని పూజా స్టోర్</div>
+    <p>Your trusted source for authentic puja supplies — from agarbatti and camphor to brass diyas and holy water. Serving Kothapet, Hyderabad with devotion since 2015.</p>
+    <p style="opacity:0.8;font-size:14px;margin-top:6px">మీ నమ్మకమైన పూజా సామగ్రి కేంద్రం — అగరబత్తి నుండి ఇత్తడి దీపాలు, పవిత్ర జలం వరకు అన్నీ ఇక్కడ లభిస్తాయి.</p>
+    <div class="hero-actions">
+      <a class="hero-btn hero-btn-primary" href="#inventory">Browse Inventory</a>
+      <a class="hero-btn hero-btn-secondary" href="#contact">Get in Touch</a>
+    </div>
+  </div>
+
+  <!-- Inventory -->
+  <div id="inventory" class="section-pad inventory-bg">
+    <div class="section-title">📦 Our Products</div>
+    <div class="section-sub">Browse our full range of puja essentials &mdash; all items are fresh, pure, and ready for your rituals.<br>మా అన్ని పూజా సామగ్రిని ఇక్కడ చూడండి.</div>
+
+    <div class="inv-controls">
+      <input type="text" class="inv-search" id="inv-search" placeholder="Search products..." oninput="filterProducts(this.value)" />
+      <div class="cat-filters" id="cat-filters"></div>
+    </div>
+
+    <div class="product-grid" id="product-grid"></div>
+    <div class="inv-summary" id="inv-summary"></div>
+  </div>
+
+  <!-- About -->
+  <div id="about" class="section-pad about-bg">
+    <div class="about-content">
+      <div class="section-title">ℹ️ About Us</div>
+      <div class="section-sub">Our story, our family, our commitment to purity</div>
+
+      <div class="about-text">
+        <p>Shalini Pooja Store has been serving the spiritual needs of Hyderabad families for over a decade. What started as a small shop beside Ashta Laxmi Temple in Kothapet has grown into a trusted destination for authentic puja items, from daily-use incense and camphor to special-occasion brass diyas and offerings.</p>
+        <span class="te">శాలిని పూజా స్టోర్ హైదరాబాద్ కుటుంబాల ఆధ్యాత్మిక అవసరాలను ఒక దశాబ్దంగా తీరుస్తోంది. కోఠాపేటలోని అష్టలక్ష్మి ఆలయం పక్కన చిన్న దుకాణంగా ప్రారంభమై నేడు ప్రామాణికమైన పూజా సామగ్రికి నమ్మకమైన కేంద్రంగా ఎదిగింది.</span>
+      </div>
+      <div class="about-text">
+        <p>We personally source each product to ensure purity and quality — our agarbatti is hand-rolled, our kumkum and haldi are stone-ground, and our brass items are crafted by traditional artisans. Every item in our store reflects our belief that puja should be performed with the purest materials.</p>
+        <span class="te">మేము ప్రతి ఉత్పత్తిని వ్యక్తిగతంగా సోర్స్ చేస్తాము — మా అగరబత్తి చేతితో తయారు చేయబడింది, మా కుంకుమ మరియు పసుపు రాతితో విస్తారించబడ్డాయి.</span>
+      </div>
+
+      <div style="text-align:center;margin-top:12px">
+        <div style="font-family:'Noto Serif',serif;font-weight:600;font-size:15px;color:var(--maroon);margin-bottom:14px">Our Proprietors</div>
+        <div class="proprietors">
+          <div class="prop-card">
+            <div class="prop-photo">👤</div>
+            <div class="prop-name">Uma Maheshwar</div>
+            <div class="prop-name" style="font-size:11px;color:var(--muted);font-weight:400">ఉమా మహేశ్వర్</div>
+            <div class="prop-title">Proprietor</div>
+          </div>
+          <div class="prop-card">
+            <div class="prop-photo">👤</div>
+            <div class="prop-name">Yashwanth</div>
+            <div class="prop-name" style="font-size:11px;color:var(--muted);font-weight:400">యశ్వంత్</div>
+            <div class="prop-title">Co-proprietor</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div id="contact" class="section-pad">
+    <div class="section-title">📞 Contact Us</div>
+    <div class="section-sub">We're here to help — visit us, call us, or send us a message on WhatsApp<br>మమ్మల్ని సంప్రదించండి</div>
+
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div class="contact-item">
+          <div class="contact-icon">📱</div>
+          <div>
+            <div class="contact-label">Phone / WhatsApp</div>
+            <div class="contact-value"><a href="tel:+9194490XXXXX">+91 94490 XXXXX</a></div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">📍</div>
+          <div>
+            <div class="contact-label">Address</div>
+            <div class="contact-value">Beside Ashta Laxmi Temple, Kothapet,<br>Hyderabad, Telangana</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">🕐</div>
+          <div>
+            <div class="contact-label">Business Hours</div>
+            <div class="contact-value">Mon–Sat: 8:00 AM – 8:00 PM<br>Sun: 8:00 AM – 1:00 PM</div>
+          </div>
+        </div>
+        <a class="wa-btn" href="https://wa.me/9194490XXXXX?text=Hi%20Shalini%20Pooja%20Store!%20I%20have%20a%20question." target="_blank" style="align-self:flex-start">📲 Message on WhatsApp</a>
+      </div>
+
+      <div class="contact-photo-card">
+        <div class="placeholder">🪔  Store Front</div>
+        <div class="caption">Shalini Pooja Store — Beside Ashta Laxmi Temple, Kothapet, Hyderabad</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="store-name">🪔 Shalini Pooja Store</div>
+    <div>Beside Ashta Laxmi Temple, Kothapet, Hyderabad &bull; <a href="https://wa.me/9194490XXXXX" target="_blank">WhatsApp</a></div>
+    <div style="margin-top:4px;font-size:11px">&copy; 2026 Shalini Pooja Store. All rights reserved.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PRODUCTS = [
+  {id:1,name:"Agarbatti",nameTe:"అగరబత్తి",emoji:"🪄",price:30,cost:0,cat:"Incense",stock:45,unit:"pack"},
+  {id:2,name:"Camphor",nameTe:"కర్పూరం",emoji:"🕯️",price:25,cost:0,cat:"Flame",stock:60,unit:"box"},
+  {id:3,name:"Kumkum",nameTe:"కుంకుమ",emoji:"🔴",hasWeights:true,weights:[{label:"100g",price:20},{label:"250g",price:45},{label:"500g",price:85}],cost:0,cat:"Powder",stock:8,unit:"pack"},
+  {id:4,name:"Haldi",nameTe:"పసుపు",emoji:"🟡",hasWeights:true,weights:[{label:"100g",price:15},{label:"250g",price:30},{label:"500g",price:55}],cost:0,cat:"Powder",stock:12,unit:"pack"},
+  {id:5,name:"Coconut",nameTe:"కొబ్బరి కాయ",emoji:"🥥",price:25,cost:0,cat:"Offerings",stock:30,unit:"pc"},
+  {id:6,name:"Flowers",nameTe:"పూలు",emoji:"🌸",price:40,cost:0,cat:"Offerings",stock:20,unit:"bunch"},
+  {id:7,name:"Deepam Oil",nameTe:"దీపం నూనె",emoji:"💧",price:55,cost:0,cat:"Oil",stock:3,unit:"bottle"},
+  {id:8,name:"Puja Plate",nameTe:"పూజ ప్లేట్",emoji:"🍽️",price:80,cost:0,cat:"Utensils",stock:0,unit:"pc"},
+  {id:9,name:"Matchbox",nameTe:"మ్యాచ్ బాక్స్",emoji:"🔥",price:10,cost:0,cat:"Flame",stock:90,unit:"box"},
+  {id:10,name:"Sandalwood",nameTe:"గంధం",emoji:"🌿",price:60,cost:0,cat:"Incense",stock:5,unit:"stick"},
+  {id:11,name:"Brass Diya",nameTe:"ఇత్తడి దీపం",emoji:"🪔",price:120,cost:0,cat:"Utensils",stock:15,unit:"pc"},
+  {id:12,name:"Holy Water",nameTe:"పవిత్ర జలం",emoji:"🫙",price:35,cost:0,cat:"Offerings",stock:0,unit:"bottle"},
+  {id:13,name:"Neem Leaves",nameTe:"వేప ఆకులు",emoji:"🍃",price:20,cost:0,cat:"Offerings",stock:10,unit:"bunch"},
+  {id:14,name:"Vibhuti",nameTe:"విభూతి",emoji:"⚪",hasWeights:true,weights:[{label:"100g",price:25},{label:"250g",price:50},{label:"500g",price:95}],cost:0,cat:"Powder",stock:22,unit:"pack"},
+  {id:15,name:"Banana Leaf",nameTe:"అరటి ఆకు",emoji:"🍌",price:15,cost:0,cat:"Offerings",stock:2,unit:"pc"},
+];
+const CATEGORIES = [...new Set(PRODUCTS.map(p=>p.cat))].sort();
+let activeCat = '';
+
+function initCategoryFilters() {
+  const container = document.getElementById('cat-filters');
+  container.innerHTML = `<button class="cat-pill ${activeCat === '' ? 'active' : ''}" onclick="setCategory('')">All</button>` +
+    CATEGORIES.map(c => `<button class="cat-pill ${activeCat === c ? 'active' : ''}" onclick="setCategory('${c}')">${c}</button>`).join('');
+}
+
+function setCategory(cat) {
+  activeCat = cat;
+  initCategoryFilters();
+  renderProducts(document.getElementById('inv-search').value);
+}
+
+function renderProducts(filter = '') {
+  const grid = document.getElementById('product-grid');
+  const summary = document.getElementById('inv-summary');
+
+  let items = PRODUCTS.filter(p =>
+    p.name.toLowerCase().includes(filter.toLowerCase()) ||
+    p.nameTe.includes(filter) ||
+    p.cat.toLowerCase().includes(filter.toLowerCase())
+  );
+  if (activeCat) items = items.filter(p => p.cat === activeCat);
+
+  if (items.length === 0) {
+    grid.innerHTML = '<div class="inv-empty">No products match your search.</div>';
+    summary.textContent = '';
+    return;
+  }
+
+  grid.innerHTML = items.map(p => {
+    const disabled = p.stock === 0;
+    let badge = '';
+    if (p.stock === 0) badge = '<span class="stock-badge stock-out">Out</span>';
+    else if (p.stock <= 5) badge = '<span class="stock-badge stock-low">Low</span>';
+
+    let priceHtml;
+    if (p.hasWeights) {
+      priceHtml = p.weights.map(w =>
+        `<span class="product-weight-item">${w.label} ₹${w.price}</span>`
+      ).join('');
+    } else {
+      priceHtml = `₹${p.price}/<small>${p.unit}</small>`;
+    }
+
+    const weightLabel = p.hasWeights
+      ? `<div class="product-weights">${priceHtml}</div>`
+      : `<div class="product-price">${priceHtml}</div>`;
+
+    return `<div class="product-tile ${disabled ? 'out' : ''}">
+      ${badge}
+      <span class="product-emoji">${p.emoji}</span>
+      <div class="product-name">${p.name}</div>
+      <div class="product-name-te">${p.nameTe}</div>
+      ${weightLabel}
+    </div>`;
+  }).join('');
+
+  const totalItems = items.length;
+  const totalStock = items.reduce((s, p) => s + p.stock, 0);
+  summary.textContent = `Showing ${totalItems} product${totalItems !== 1 ? 's' : ''} · ${totalStock} units in stock`;
+}
+
+function filterProducts(v) {
+  renderProducts(v);
+}
+
+initCategoryFilters();
+renderProducts();
+</script>
+</body>
+</html>
