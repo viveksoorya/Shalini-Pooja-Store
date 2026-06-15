@@ -1,0 +1,1293 @@
+
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --saffron:#E8650A; --saffron-light:#FDF0E6; --saffron-mid:#F5A55A;
+    --maroon:#7B1F2E; --cream:#FDF8F2; --gold:#C49A3C;
+    --text:#1A1208; --muted:#7A6A55; --border:#E8DDD0; --surface:#FFFFFF;
+    --green:#2E7D52; --green-bg:#EBF5EF; --upi:#4A90D9; --upi-bg:#EBF2FB;
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
+  .app { display:flex; flex-direction:column; min-height:100vh; }
+  .header { background:var(--maroon); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .header-brand { display:flex; align-items:center; gap:10px; }
+  .header-logo { width:36px; height:36px; background:var(--saffron); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .header-title { font-family:'Noto Serif',serif; color:#fff; font-size:18px; font-weight:600; }
+  .header-sub { color:#FFCB8E; font-size:11px; margin-top:1px; }
+  .header-nav { display:flex; gap:4px; }
+  .nav-btn { padding:7px 14px; border-radius:6px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; background:transparent; color:rgba(255,255,255,0.65); transition:all 0.15s; }
+  .nav-btn.active { background:var(--saffron); color:#fff; }
+  .nav-btn:not(.active):hover { background:rgba(255,255,255,0.1); color:#fff; }
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  /* Stats bar */
+  .stats-bar { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; padding:16px 24px 0; }
+  .stat-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+  .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .stat-val { font-size:19px; font-weight:600; margin-top:3px; font-family:'Noto Serif',serif; }
+  .stat-val.orange { color:var(--saffron); } .stat-val.green { color:var(--green); }
+  .stat-val.maroon { color:var(--maroon); } .stat-val.gold { color:var(--gold); }
+  .stat-val.upi { color:var(--upi); } .stat-val.cash { color:#555; }
+
+  /* Billing */
+  .billing-layout { display:grid; grid-template-columns:1fr 370px; gap:20px; padding:20px 24px; align-items:start; }
+  .section-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .card-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-head h3 { font-family:'Noto Serif',serif; font-size:15px; font-weight:600; }
+  .card-body { padding:18px; }
+  .product-search { width:100%; padding:9px 14px; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:14px; background:var(--cream); margin-bottom:14px; outline:none; }
+  .product-search:focus { border-color:var(--saffron); }
+  .product-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-height:320px; overflow-y:auto; }
+  .product-tile { border:1px solid var(--border); border-radius:8px; padding:10px 8px; cursor:pointer; text-align:center; transition:all 0.12s; background:var(--cream); }
+  .product-tile:hover { border-color:var(--saffron); background:var(--saffron-light); }
+  .product-tile.added { border-color:var(--green); background:var(--green-bg); }
+  .product-emoji { font-size:22px; display:block; margin-bottom:4px; }
+  .product-name { font-size:11px; font-weight:500; }
+  .product-price { font-size:11px; color:var(--saffron); margin-top:2px; font-weight:500; }
+  .customer-row { display:flex; gap:8px; margin-bottom:10px; }
+  .customer-input { flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; background:var(--cream); outline:none; }
+  .customer-input:focus { border-color:var(--saffron); }
+  .occasion-select { padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; background:var(--cream); outline:none; cursor:pointer; }
+
+  /* Payment mode toggle */
+  .payment-toggle { display:flex; gap:0; margin-bottom:12px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .pay-opt { flex:1; padding:8px; text-align:center; cursor:pointer; font-size:13px; font-weight:500; background:var(--cream); transition:0.15s; border:none; font-family:'DM Sans',sans-serif; }
+  .pay-opt.active-cash { background:var(--text); color:#fff; }
+  .pay-opt.active-upi { background:var(--upi); color:#fff; }
+  .pay-opt:not(.active-cash):not(.active-upi):hover { background:var(--saffron-light); }
+  .upi-ref-row { margin-bottom:12px; display:none; }
+  .upi-ref-row.show { display:block; }
+  .upi-ref-input { width:100%; padding:8px 12px; border:1px solid var(--upi); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; background:var(--upi-bg); outline:none; }
+
+  .bill-items { min-height:120px; margin-bottom:12px; }
+  .bill-empty { display:flex; align-items:center; justify-content:center; height:90px; color:var(--muted); font-size:13px; border:1px dashed var(--border); border-radius:8px; }
+  .bill-item { display:flex; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); gap:8px; }
+  .bill-item-name { flex:1; font-size:13px; font-weight:500; }
+  .bill-item-qty { display:flex; align-items:center; gap:6px; }
+  .qty-btn { width:22px; height:22px; border-radius:50%; border:1px solid var(--border); background:var(--cream); cursor:pointer; font-size:14px; font-weight:500; display:flex; align-items:center; justify-content:center; color:var(--saffron); }
+  .qty-btn:hover { background:var(--saffron-light); }
+  .qty-num { font-size:13px; min-width:18px; text-align:center; }
+  .bill-item-total { font-size:13px; font-weight:500; min-width:52px; text-align:right; }
+  .bill-item-del { color:#ccc; cursor:pointer; font-size:16px; padding:0 2px; }
+  .bill-item-del:hover { color:#e53; }
+  .bill-summary { background:var(--cream); border-radius:8px; padding:12px 14px; margin-bottom:12px; }
+  .summary-row { display:flex; justify-content:space-between; font-size:13px; padding:2px 0; color:var(--muted); }
+  .summary-row.total { font-size:16px; font-weight:600; color:var(--text); padding-top:8px; border-top:1px solid var(--border); margin-top:6px; }
+  .summary-row.total span:last-child { color:var(--saffron); }
+  .bill-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn-primary { flex:1; padding:10px; background:var(--saffron); color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:0.15s; }
+  .btn-primary:hover { background:#cf5608; }
+  .btn-whatsapp { padding:10px 14px; background:#25D366; color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; }
+  .btn-secondary { padding:10px 14px; background:var(--cream); color:var(--text); border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; }
+  .btn-secondary:hover { border-color:var(--saffron); color:var(--saffron); }
+
+  /* Inventory */
+  .inventory-layout { padding:20px 24px; }
+  .inv-toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; }
+  .inv-search { flex:1; padding:9px 14px; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:14px; background:var(--surface); outline:none; }
+  .inv-search:focus { border-color:var(--saffron); }
+  .btn-add-item { padding:9px 18px; background:var(--saffron); color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; }
+  .inv-table { width:100%; border-collapse:collapse; }
+  .inv-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--border); background:var(--cream); }
+  .inv-table td { padding:11px 14px; font-size:13px; border-bottom:1px solid var(--border); }
+  .inv-table tr:last-child td { border-bottom:none; }
+  .inv-table tr:hover td { background:var(--saffron-light); }
+  .stock-badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:500; }
+  .stock-ok { background:var(--green-bg); color:var(--green); }
+  .stock-low { background:#FFF3E0; color:#E65100; }
+  .stock-out { background:#FFEBEE; color:#C62828; }
+
+  /* Customers */
+  .customers-layout { padding:20px 24px; }
+  .cust-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  .cust-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:10px; }
+  .cust-header { display:flex; align-items:center; gap:12px; }
+  .cust-avatar { width:40px; height:40px; border-radius:50%; background:var(--saffron); display:flex; align-items:center; justify-content:center; font-family:'Noto Serif',serif; font-size:16px; color:#fff; font-weight:600; flex-shrink:0; }
+  .cust-name { font-weight:500; font-size:14px; }
+  .cust-phone { font-size:12px; color:var(--muted); margin-top:1px; }
+  .cust-stats { display:flex; gap:8px; }
+  .cust-stat { flex:1; background:var(--cream); border-radius:8px; padding:8px 10px; text-align:center; }
+  .cust-stat-val { font-size:15px; font-weight:600; color:var(--saffron); }
+  .cust-stat-label { font-size:10px; color:var(--muted); margin-top:1px; }
+  .occasion-tag { display:inline-block; padding:2px 8px; border-radius:20px; background:var(--saffron-light); color:var(--saffron); font-size:11px; font-weight:500; }
+
+  /* Daily Report */
+  .report-layout { padding:20px 24px; }
+  .report-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .report-header h2 { font-family:'Noto Serif',serif; font-size:18px; }
+  .report-date { font-size:13px; color:var(--muted); }
+  .report-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .report-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; }
+  .report-card h4 { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:14px; }
+  .split-bar { display:flex; height:10px; border-radius:5px; overflow:hidden; margin:12px 0 8px; }
+  .split-cash { background:var(--text); }
+  .split-upi { background:var(--upi); }
+  .split-labels { display:flex; gap:16px; }
+  .split-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:5px; vertical-align:middle; }
+  .split-label { font-size:12px; color:var(--muted); }
+  .split-label b { color:var(--text); }
+  .top-items-list { display:flex; flex-direction:column; gap:8px; }
+  .top-item-row { display:flex; align-items:center; gap:10px; }
+  .top-item-bar-bg { flex:1; height:6px; background:var(--border); border-radius:3px; }
+  .top-item-bar { height:6px; background:var(--saffron); border-radius:3px; }
+  .top-item-label { font-size:12px; min-width:90px; }
+  .top-item-val { font-size:12px; color:var(--muted); min-width:40px; text-align:right; }
+  .txn-table { width:100%; border-collapse:collapse; }
+  .txn-table th { text-align:left; padding:8px 12px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--border); background:var(--cream); }
+  .txn-table td { padding:9px 12px; font-size:13px; border-bottom:1px solid var(--border); }
+  .txn-table tr:last-child td { border-bottom:none; }
+  .pay-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:500; }
+  .pay-badge.cash { background:#F5F5F5; color:#555; }
+  .pay-badge.upi { background:var(--upi-bg); color:var(--upi); }
+  .btn-whatsapp-report { padding:10px 18px; background:#25D366; color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; }
+
+  /* Receipt overlay */
+  .receipt-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(26,18,8,0.55); display:none; align-items:center; justify-content:center; z-index:200; }
+  .receipt-overlay.show { display:flex; }
+  .receipt { background:#fff; border-radius:12px; width:300px; padding:24px 22px; font-family:'DM Sans',sans-serif; max-height:90vh; overflow-y:auto; }
+  .receipt-logo { text-align:center; margin-bottom:12px; }
+  .receipt-logo div { font-family:'Noto Serif',serif; font-size:18px; font-weight:600; color:var(--maroon); }
+  .receipt-logo small { font-size:11px; color:var(--muted); }
+  .receipt-divider { border:none; border-top:1px dashed var(--border); margin:10px 0; }
+  .receipt-row { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; }
+  .receipt-total { display:flex; justify-content:space-between; font-size:16px; font-weight:600; padding:8px 0 0; border-top:1px solid var(--border); margin-top:4px; }
+  .receipt-pay-mode { text-align:center; margin-top:8px; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:500; display:inline-block; }
+  .receipt-pay-mode.cash { background:#F5F5F5; color:#555; }
+  .receipt-pay-mode.upi { background:var(--upi-bg); color:var(--upi); }
+  .receipt-footer { text-align:center; font-size:11px; color:var(--muted); margin-top:14px; }
+  .receipt-btns { display:flex; gap:8px; margin-top:14px; }
+  .receipt-close { flex:1; padding:10px; background:var(--maroon); color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:14px; cursor:pointer; }
+  .receipt-wa { flex:1; padding:10px; background:#25D366; color:#fff; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:14px; cursor:pointer; }
+
+  /* Toast */
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1A1208; color:#fff; padding:10px 20px; border-radius:8px; font-size:13px; z-index:300; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+  .toast.show { opacity:1; }
+
+  /* Telugu name */
+  .product-name-te { font-size:10px; color:var(--muted); margin-top:1px; }
+
+  /* Weight options */
+  .weight-options { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; justify-content:center; }
+  .weight-btn { padding:3px 7px; border-radius:12px; border:1px solid var(--border); background:var(--surface); font-size:10px; font-weight:500; cursor:pointer; transition:0.12s; font-family:'DM Sans',sans-serif; line-height:1.3; color:var(--text); }
+  .weight-btn:hover { border-color:var(--saffron); background:var(--saffron-light); color:var(--saffron); }
+  .weight-btn.added { border-color:var(--green); background:var(--green-bg); color:var(--green); }
+  .name-te { color:var(--muted); font-size:11px; }
+  .name-en-te { font-size:13px; }
+  .name-en-te small { color:var(--muted); font-size:11px; }
+
+  /* Analytics layout */
+  .analytics-layout { padding:20px 24px; display:flex; flex-direction:column; gap:24px; }
+  .analytics-section-title { font-family:'Noto Serif',serif; font-size:16px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .analytics-grid { display:grid; gap:16px; }
+  .analytics-grid.two-col { grid-template-columns:1fr 1fr; }
+  .analytics-grid.three-col { grid-template-columns:1fr 1fr 1fr; }
+
+  /* Revenue toggle */
+  .revenue-toggle { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+  .rev-opt { padding:7px 18px; border-radius:20px; border:1px solid var(--border); background:var(--surface); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:0.15s; color:var(--muted); }
+  .rev-opt:hover { border-color:var(--saffron); color:var(--saffron); }
+  .rev-opt.active { background:var(--saffron); color:#fff; border-color:var(--saffron); }
+
+  /* Analytics tables */
+  .a-table { width:100%; border-collapse:collapse; }
+  .a-table th { text-align:left; padding:8px 10px; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--border); background:var(--cream); }
+  .a-table td { padding:9px 10px; font-size:12px; border-bottom:1px solid var(--border); }
+  .a-table tr:last-child td { border-bottom:none; }
+  .a-table .rank { font-weight:600; color:var(--saffron); min-width:20px; }
+  .a-table .num { font-weight:600; text-align:right; font-family:'Noto Serif',serif; }
+  .a-table .pct { color:var(--muted); font-size:11px; }
+  .a-empty { text-align:center; padding:30px 10px; color:var(--muted); font-size:13px; }
+
+  /* Profit bar */
+  .profit-bar-bg { height:6px; background:var(--border); border-radius:3px; flex:1; }
+  .profit-bar { height:6px; background:var(--green); border-radius:3px; }
+  .profit-bar.maroon { background:var(--maroon); }
+  .profit-row { display:flex; align-items:center; gap:10px; }
+  .profit-label { font-size:11px; min-width:100px; }
+  .profit-val { font-size:11px; color:var(--muted); min-width:50px; text-align:right; }
+
+  /* Medium screens */
+  /* Value Dashboard */
+  .value-layout { padding:20px 24px; display:flex; flex-direction:column; gap:20px; }
+  .value-hero { background:linear-gradient(135deg,var(--maroon),#9c2740); border-radius:14px; padding:28px 30px; color:#fff; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+  .value-hero h2 { font-family:'Noto Serif',serif; font-size:22px; margin-bottom:4px; }
+  .value-hero p { font-size:13px; opacity:0.85; }
+  .value-hero-amt { text-align:right; }
+  .value-hero-amt .big { font-size:36px; font-weight:700; font-family:'Noto Serif',serif; }
+  .value-hero-amt .label { font-size:12px; opacity:0.8; }
+  .value-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .value-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; }
+  .value-card h4 { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+  .value-card .num-lg { font-size:28px; font-weight:700; font-family:'Noto Serif',serif; color:var(--maroon); }
+  .value-card .num-lg.green { color:var(--green); }
+  .value-card .num-lg.gold { color:var(--gold); }
+  .value-card .num-lg.saffron { color:var(--saffron); }
+  .value-card p { font-size:12px; color:var(--muted); margin-top:2px; }
+  .value-breakdown { display:flex; flex-direction:column; gap:10px; }
+  .value-break-row { display:flex; align-items:center; gap:12px; }
+  .value-break-row .icon { font-size:18px; width:28px; text-align:center; }
+  .value-break-row .label { font-size:13px; min-width:90px; font-weight:500; }
+  .value-break-row .bar-bg { flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+  .value-break-row .bar-fill { height:8px; border-radius:4px; transition:width 0.5s; }
+  .value-break-row .val { font-size:12px; color:var(--muted); min-width:70px; text-align:right; }
+  .value-pitch { background:var(--saffron-light); border:1px solid var(--saffron); border-radius:12px; padding:20px 24px; }
+  .value-pitch h3 { font-family:'Noto Serif',serif; font-size:15px; color:var(--maroon); margin-bottom:8px; }
+  .value-pitch p { font-size:13px; color:var(--text); line-height:1.6; }
+  .value-pitch .highlight { background:var(--saffron); color:#fff; padding:1px 6px; border-radius:4px; font-weight:600; }
+  .value-pitch .fee-box { display:inline-block; background:#fff; border:1px solid var(--saffron); border-radius:8px; padding:10px 16px; margin-top:8px; }
+  .value-pitch .fee-box .amt { font-size:20px; font-weight:700; color:var(--maroon); font-family:'Noto Serif',serif; }
+  .value-pitch .fee-box .note { font-size:11px; color:var(--muted); }
+  @media (max-width:768px) {
+    .analytics-grid.two-col { grid-template-columns:1fr; }
+    .value-grid { grid-template-columns:1fr; }
+    .billing-layout { grid-template-columns:1fr; }
+    .stats-bar { grid-template-columns:repeat(3,1fr); }
+    .product-grid { grid-template-columns:repeat(2,1fr); }
+    .value-hero { flex-direction:column; text-align:center; }
+    .value-hero-amt { text-align:center; }
+  }
+  @media (max-width:480px) {
+    .stats-bar { grid-template-columns:repeat(2,1fr); }
+    .header-title { font-size:15px; }
+    .nav-btn { font-size:11px; padding:6px 10px; }
+    .analytics-layout { padding:14px; }
+  }
+</style>
+
+<div class="app">
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-logo">🪔</div>
+      <div>
+        <div class="header-title">Shalini Pooja Store</div>
+        <div class="header-sub">Beside Ashta Laxmi Temple, Kothapet, Hyderabad</div>
+      </div>
+    </div>
+    <div class="header-nav">
+      <button class="nav-btn active" onclick="switchTab('billing',this)">🧾 Billing</button>
+      <button class="nav-btn" onclick="switchTab('inventory',this)">📦 Inventory</button>
+      <button class="nav-btn" onclick="switchTab('customers',this)">👥 Customers</button>
+      <button class="nav-btn" onclick="switchTab('report',this)">📊 Daily Report</button>
+      <button class="nav-btn" onclick="switchTab('analytics',this)">📈 Analytics</button>
+      <button class="nav-btn" onclick="switchTab('value',this)">💎 Value</button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-box"><div class="stat-label">Total Sales</div><div class="stat-val orange" id="stat-sales">₹0</div></div>
+    <div class="stat-box"><div class="stat-label">Cash</div><div class="stat-val cash" id="stat-cash">₹0</div></div>
+    <div class="stat-box"><div class="stat-label">UPI</div><div class="stat-val upi" id="stat-upi">₹0</div></div>
+    <div class="stat-box" style="cursor:pointer" onclick="goToTab('report')"><div class="stat-label">Bills Today</div><div class="stat-val green" id="stat-bills">0</div></div>
+    <div class="stat-box" style="cursor:pointer" onclick="showLowStock()"><div class="stat-label">Low Stock</div><div class="stat-val maroon" id="stat-low">3</div></div>
+    <div class="stat-box" style="cursor:pointer" onclick="goToTab('customers')"><div class="stat-label">Customers</div><div class="stat-val gold" id="stat-customers">6</div></div>
+  </div>
+
+  <!-- BILLING -->
+  <div id="tab-billing" class="tab-content active">
+    <div class="billing-layout">
+      <div class="section-card">
+        <div class="card-head">
+          <h3>Select Items</h3>
+          <span style="font-size:12px;color:var(--muted)">Click to add to bill</span>
+        </div>
+        <div class="card-body">
+          <input type="text" class="product-search" placeholder="Search item..." oninput="filterProducts(this.value)" />
+          <div class="product-grid" id="product-grid"></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="card-head">
+          <h3>Current Bill</h3>
+          <span id="bill-count" style="font-size:12px;color:var(--muted)">0 items</span>
+        </div>
+        <div class="card-body">
+          <div class="customer-row">
+            <input type="text" class="customer-input" id="cust-name" placeholder="Customer name" />
+            <select class="occasion-select" id="cust-occasion">
+              <option value="">Occasion</option>
+              <option>Satyanarayan Puja</option>
+              <option>Griha Pravesh</option>
+              <option>Ganesh Puja</option>
+              <option>Lakshmi Puja</option>
+              <option>Daily Puja</option>
+              <option>Navaratri</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="customer-row">
+            <input type="text" class="customer-input" id="cust-phone" placeholder="Phone (for WhatsApp)" style="flex:1" />
+          </div>
+
+          <!-- Payment Mode -->
+          <div class="payment-toggle">
+            <button class="pay-opt active-cash" id="pay-cash" onclick="setPayMode('cash')">💵 Cash</button>
+            <button class="pay-opt" id="pay-upi" onclick="setPayMode('upi')">📱 UPI</button>
+          </div>
+          <div class="upi-ref-row" id="upi-ref-row">
+            <input type="text" class="upi-ref-input" id="upi-ref" placeholder="UPI Ref # (optional, e.g. 4059XXXXXX)" />
+          </div>
+
+          <div class="bill-items" id="bill-items">
+            <div class="bill-empty">Add items from the left →</div>
+          </div>
+          <div class="bill-summary">
+            <div class="summary-row"><span>Subtotal</span><span id="s-sub">₹0.00</span></div>
+            <div class="summary-row total"><span>Total</span><span id="s-total">₹0.00</span></div>
+          </div>
+          <div class="bill-actions">
+            <button class="btn-secondary" onclick="clearBill()">Clear</button>
+            <button class="btn-primary" onclick="printBill()">Print Bill</button>
+            <button class="btn-whatsapp" onclick="whatsappBill()" title="Send via WhatsApp">📲</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div id="tab-inventory" class="tab-content">
+    <div class="inventory-layout">
+      <div class="inv-toolbar">
+        <input type="text" class="inv-search" placeholder="Search inventory..." oninput="filterInventory(this.value)" />
+        <button class="btn-add-item">+ Add Item</button>
+      </div>
+      <div id="low-stock-banner" style="display:none;background:var(--saffron-light);border:1px solid var(--saffron);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;align-items:center;justify-content:space-between">
+        <span>🔴 Showing low-stock items (stock ≤ 5)</span>
+        <a href="#" onclick="clearLowFilter();return false" style="color:var(--saffron);font-weight:500;text-decoration:none">Show all items →</a>
+      </div>
+      <div class="section-card">
+        <table class="inv-table">
+          <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Cost (₹)</th><th>Stock</th><th>Status</th></tr></thead>
+          <tbody id="inv-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div id="tab-customers" class="tab-content">
+    <div class="customers-layout">
+      <div class="cust-grid" id="cust-grid"></div>
+    </div>
+  </div>
+
+  <!-- DAILY REPORT -->
+  <div id="tab-report" class="tab-content">
+    <div class="report-layout">
+      <div class="report-header">
+        <div>
+          <h2>Daily Sales Report</h2>
+          <div class="report-date" id="report-date"></div>
+        </div>
+        <button class="btn-whatsapp-report" onclick="whatsappReport()">📲 Share on WhatsApp</button>
+      </div>
+
+      <div class="report-grid">
+        <!-- Payment split -->
+        <div class="report-card">
+          <h4>Payment Split</h4>
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div>
+              <div style="font-size:26px;font-weight:600;font-family:'Noto Serif',serif" id="r-total">₹0</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Total collected</div>
+            </div>
+            <div style="text-align:right">
+              <div id="r-bills" style="font-size:20px;font-weight:600;color:var(--green)">0</div>
+              <div style="font-size:12px;color:var(--muted)">Bills</div>
+            </div>
+          </div>
+          <div class="split-bar" id="split-bar">
+            <div class="split-cash" id="bar-cash" style="width:50%"></div>
+            <div class="split-upi" id="bar-upi" style="width:50%"></div>
+          </div>
+          <div class="split-labels">
+            <span class="split-label"><span class="split-dot" style="background:var(--text)"></span>Cash <b id="r-cash">₹0</b></span>
+            <span class="split-label"><span class="split-dot" style="background:var(--upi)"></span>UPI <b id="r-upi">₹0</b></span>
+          </div>
+        </div>
+
+        <!-- Top items -->
+        <div class="report-card">
+          <h4>Top Items Sold</h4>
+          <div class="top-items-list" id="top-items">
+            <div style="color:var(--muted);font-size:13px">No sales yet today</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction log -->
+      <div class="section-card">
+        <div class="card-head"><h3>Today's Bills</h3></div>
+        <div id="txn-empty" style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No bills generated yet</div>
+        <table class="txn-table" id="txn-table" style="display:none">
+          <thead><tr><th>#</th><th>Customer</th><th>Occasion</th><th>Items</th><th>Payment</th><th>Amount</th></tr></thead>
+          <tbody id="txn-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ANALYTICS -->
+  <div id="tab-analytics" class="tab-content">
+    <div class="analytics-layout">
+
+      <!-- Customer Analytics -->
+      <div>
+        <div class="analytics-section-title">👥 Customer Analytics</div>
+        <div class="analytics-grid two-col">
+          <div class="section-card">
+            <div class="card-head"><h3>Top Customers by Revenue</h3><span style="font-size:11px;color:var(--muted)">All time</span></div>
+            <div class="card-body"><div id="a-top-revenue" class="a-empty">No data yet. Start billing!</div></div>
+          </div>
+          <div class="section-card">
+            <div class="card-head"><h3>Top Customers by Profit</h3><span style="font-size:11px;color:var(--muted)">All time</span></div>
+            <div class="card-body"><div id="a-top-profit" class="a-empty">No data yet. Start billing!</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue Tally -->
+      <div>
+        <div class="analytics-section-title">💰 Revenue Tally</div>
+        <div class="revenue-toggle" id="rev-toggle">
+          <button class="rev-opt active" onclick="setRevenuePeriod('day')">📅 Day</button>
+          <button class="rev-opt" onclick="setRevenuePeriod('week')">📅 Week</button>
+          <button class="rev-opt" onclick="setRevenuePeriod('month')">📅 Month</button>
+          <button class="rev-opt" onclick="setRevenuePeriod('year')">📅 Year</button>
+          <button class="rev-opt" onclick="setRevenuePeriod('all')">📅 All Time</button>
+        </div>
+        <div class="analytics-grid two-col">
+          <div class="report-card">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <div><div style="font-size:26px;font-weight:600;font-family:'Noto Serif',serif" id="a-rev-total">₹0</div><div style="font-size:12px;color:var(--muted)">Revenue</div></div>
+              <div style="text-align:right"><div id="a-rev-bills" style="font-size:20px;font-weight:600;color:var(--green)">0</div><div style="font-size:12px;color:var(--muted)">Bills</div></div>
+            </div>
+            <div class="split-bar" style="margin:14px 0 8px"><div class="split-cash" id="a-bar-cash" style="width:50%"></div><div class="split-upi" id="a-bar-upi" style="width:50%"></div></div>
+            <div class="split-labels">
+              <span class="split-label"><span class="split-dot" style="background:var(--text)"></span>Cash <b id="a-rev-cash">₹0</b></span>
+              <span class="split-label"><span class="split-dot" style="background:var(--upi)"></span>UPI <b id="a-rev-upi">₹0</b></span>
+              <span class="split-label" style="margin-left:auto">Period: <b id="a-rev-period">Today</b></span>
+            </div>
+          </div>
+          <div class="report-card">
+            <h4>Top Items (Period)</h4>
+            <div id="a-rev-top-items"><div class="a-empty">No sales in this period</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory Analytics -->
+      <div>
+        <div class="analytics-section-title">📊 Inventory Analytics (Past 30 Days)</div>
+        <div class="analytics-grid two-col">
+          <div class="section-card">
+            <div class="card-head"><h3>Most Selling Items</h3></div>
+            <div class="card-body"><div id="a-most-sold" class="a-empty">No data yet.</div></div>
+          </div>
+          <div class="section-card">
+            <div class="card-head"><h3>Least Selling Items</h3></div>
+            <div class="card-body"><div id="a-least-sold" class="a-empty">No data yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profit Sources -->
+      <div>
+        <div class="analytics-section-title">💰 Profit Sources</div>
+        <div class="analytics-grid two-col">
+          <div class="section-card">
+            <div class="card-head"><h3>Where Most Profit Comes From</h3></div>
+            <div class="card-body"><div id="a-profit-most" class="a-empty">Set cost prices in Inventory first.</div></div>
+          </div>
+          <div class="section-card">
+            <div class="card-head"><h3>Where Least Profit Comes From</h3></div>
+            <div class="card-body"><div id="a-profit-least" class="a-empty">Set cost prices in Inventory first.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item-wise View -->
+      <div>
+        <div class="analytics-section-title">📋 Item-wise Sales &amp; Revenue (All Time)</div>
+        <div class="section-card">
+          <div class="card-body" id="a-itemwise"><div class="a-empty">No data yet.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VALUE DASHBOARD -->
+  <div id="tab-value" class="tab-content">
+    <div class="value-layout">
+      <div class="value-hero">
+        <div>
+          <h2>💎 Value Delivered</h2>
+          <p>Real-time calculation of time &amp; money saved by going digital</p>
+        </div>
+        <div class="value-hero-amt">
+          <div class="big" id="vd-hero-amt">₹0</div>
+          <div class="label">Total value delivered to your business</div>
+        </div>
+      </div>
+
+      <div class="value-grid">
+        <div class="value-card">
+          <h4>🕐 Time Saved</h4>
+          <div class="num-lg" id="vd-hours">0 hrs</div>
+          <p>That's <span id="vd-workdays">0</span> full working days back in your pocket</p>
+        </div>
+        <div class="value-card">
+          <h4>🧾 Bills Processed</h4>
+          <div class="num-lg green" id="vd-bills">0</div>
+          <p>Each bill took ~4 min manually, now just 45 sec</p>
+        </div>
+        <div class="value-card">
+          <h4>👥 Customers Tracked</h4>
+          <div class="num-lg gold" id="vd-customers">0</div>
+          <p>Auto-tracked visits, spending &amp; loyalty data</p>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="card-head"><h3>📊 Time &amp; Cost Savings Breakdown</h3></div>
+        <div class="card-body">
+          <div class="value-breakdown" id="vd-breakdown"></div>
+        </div>
+      </div>
+
+      <div class="value-pitch">
+        <h3>🤝 The Partnership Proposition</h3>
+        <p>
+          This software has saved you <strong class="highlight" id="vd-pitch-value">₹0</strong> in time value alone
+          (at ₹500/hr for your time). Add in eliminated manual overhead, and
+          the <strong>total value delivered is <span class="highlight" id="vd-pitch-total">₹0</span></strong>.
+        </p>
+        <p style="margin-top:10px">
+          I'm not charging a fixed license fee. I'm asking for a share of the
+          value I've helped create. At just <strong>Y%</strong>, that's:
+        </p>
+        <div class="fee-box" id="vd-fee-box">
+          <span style="font-size:12px;color:var(--muted)">Your investment (Y% of value):</span><br>
+          <span class="amt" id="vd-fee-amt">₹0</span>
+          <span class="note"> / month — and you keep the rest!</span>
+        </div>
+        <p style="margin-top:12px;font-size:12px;color:var(--muted)">
+          💡 <strong>Zero risk.</strong> Pay only from the value you actually realize.
+          The better it performs, the more you keep.
+        </p>
+      </div>
+
+      <div style="text-align:center;font-size:11px;color:var(--muted);padding:4px 0 10px">
+        <span>Y% = your agreed percentage. Value = time saved (₹500/hr imputed) + eliminated manual overhead.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Overlay -->
+<div class="receipt-overlay" id="receipt-overlay">
+  <div class="receipt" id="receipt-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const PRODUCTS = [
+  {id:1,name:"Agarbatti",nameTe:"అగరబత్తి",emoji:"🪄",price:30,cost:0,cat:"Incense",stock:45,unit:"pack"},
+  {id:2,name:"Camphor",nameTe:"కర్పూరం",emoji:"🕯️",price:25,cost:0,cat:"Flame",stock:60,unit:"box"},
+  {id:3,name:"Kumkum",nameTe:"కుంకుమ",emoji:"🔴",hasWeights:true,weights:[{label:"100g",price:20},{label:"250g",price:45},{label:"500g",price:85}],cost:0,cat:"Powder",stock:8,unit:"pack"},
+  {id:4,name:"Haldi",nameTe:"పసుపు",emoji:"🟡",hasWeights:true,weights:[{label:"100g",price:15},{label:"250g",price:30},{label:"500g",price:55}],cost:0,cat:"Powder",stock:12,unit:"pack"},
+  {id:5,name:"Coconut",nameTe:"కొబ్బరి కాయ",emoji:"🥥",price:25,cost:0,cat:"Offerings",stock:30,unit:"pc"},
+  {id:6,name:"Flowers",nameTe:"పూలు",emoji:"🌸",price:40,cost:0,cat:"Offerings",stock:20,unit:"bunch"},
+  {id:7,name:"Deepam Oil",nameTe:"దీపం నూనె",emoji:"💧",price:55,cost:0,cat:"Oil",stock:3,unit:"bottle"},
+  {id:8,name:"Puja Plate",nameTe:"పూజ ప్లేట్",emoji:"🍽️",price:80,cost:0,cat:"Utensils",stock:0,unit:"pc"},
+  {id:9,name:"Matchbox",nameTe:"మ్యాచ్ బాక్స్",emoji:"🔥",price:10,cost:0,cat:"Flame",stock:90,unit:"box"},
+  {id:10,name:"Sandalwood",nameTe:"గంధం",emoji:"🌿",price:60,cost:0,cat:"Incense",stock:5,unit:"stick"},
+  {id:11,name:"Brass Diya",nameTe:"ఇత్తడి దీపం",emoji:"🪔",price:120,cost:0,cat:"Utensils",stock:15,unit:"pc"},
+  {id:12,name:"Holy Water",nameTe:"పవిత్ర జలం",emoji:"🫙",price:35,cost:0,cat:"Offerings",stock:0,unit:"bottle"},
+  {id:13,name:"Neem Leaves",nameTe:"వేప ఆకులు",emoji:"🍃",price:20,cost:0,cat:"Offerings",stock:10,unit:"bunch"},
+  {id:14,name:"Vibhuti",nameTe:"విభూతి",emoji:"⚪",hasWeights:true,weights:[{label:"100g",price:25},{label:"250g",price:50},{label:"500g",price:95}],cost:0,cat:"Powder",stock:22,unit:"pack"},
+  {id:15,name:"Banana Leaf",nameTe:"అరటి ఆకు",emoji:"🍌",price:15,cost:0,cat:"Offerings",stock:2,unit:"pc"},
+];
+
+const CUSTOMERS = [
+  {name:"Ramesh Reddy",nameTe:"రమేశ్ రెడ్డి",phone:"98490 12345",visits:8,spent:1240,profit:0,occasion:"Lakshmi Puja"},
+  {name:"Sunita Devi",nameTe:"సునీతా దేవి",phone:"94400 67890",visits:4,spent:560,profit:0,occasion:"Daily Puja"},
+  {name:"Prakash Rao",nameTe:"ప్రకాశ్ రావు",phone:"99890 11223",visits:12,spent:2100,profit:0,occasion:"Satyanarayan Puja"},
+  {name:"Annapurna",nameTe:"అన్నపూర్ణ",phone:"97050 44556",visits:3,spent:340,profit:0,occasion:"Griha Pravesh"},
+  {name:"Venkat Sharma",nameTe:"వెంకట్ శర్మ",phone:"93908 77889",visits:6,spent:890,profit:0,occasion:"Navaratri"},
+  {name:"Lakshmi Bai",nameTe:"లక్ష్మీ బాయి",phone:"91500 33214",visits:9,spent:1580,profit:0,occasion:"Ganesh Puja"},
+];
+
+let cart=[], payMode='cash', salesTotal=0, cashTotal=0, upiTotal=0, billCount=0, transactions=[], itemSales={};
+let revPeriod='day', inventoryLowFilter=false;
+
+function saveData() {
+  try {
+    localStorage.setItem('ys_store', JSON.stringify({
+      transactions, salesTotal, cashTotal, upiTotal, billCount, itemSales
+    }));
+  } catch(e){}
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('ys_store');
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    transactions = d.transactions || [];
+    salesTotal = d.salesTotal || 0;
+    cashTotal = d.cashTotal || 0;
+    upiTotal = d.upiTotal || 0;
+    billCount = d.billCount || 0;
+    itemSales = d.itemSales || {};
+    return true;
+  } catch(e){ return false; }
+}
+
+function setPayMode(m) {
+  payMode=m;
+  document.getElementById('pay-cash').className='pay-opt'+(m==='cash'?' active-cash':'');
+  document.getElementById('pay-upi').className='pay-opt'+(m==='upi'?' active-upi':'');
+  document.getElementById('upi-ref-row').className='upi-ref-row'+(m==='upi'?' show':'');
+}
+
+function initProducts(filter='') {
+  const grid=document.getElementById('product-grid');
+  const f=PRODUCTS.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()));
+  grid.innerHTML=f.map(p=>{
+    const disabled=p.stock===0;
+    if(p.hasWeights){
+      return `<div class="product-tile" ${disabled?'style="opacity:0.4;pointer-events:none"':''}>
+        <span class="product-emoji">${p.emoji}</span>
+        <div class="product-name">${p.name}</div>
+        <div class="product-name-te">${p.nameTe}</div>
+        <div class="weight-options">${p.weights.map(w=>{
+          const inCart=cart.find(c=>c.variantId===p.id+'-'+w.label);
+          return `<button class="weight-btn ${inCart?'added':''}" onclick="addToCartWeight(${p.id},'${w.label}')">${w.label}<br><small>₹${w.price}</small></button>`;
+        }).join('')}</div>
+      </div>`;
+    }
+    const inCart=cart.find(c=>c.variantId===String(p.id));
+    return `<div class="product-tile ${inCart?'added':''}" ${disabled?'style="opacity:0.4;pointer-events:none"':''} onclick="addToCart(${p.id})">
+      <span class="product-emoji">${p.emoji}</span>
+      <div class="product-name">${p.name}</div>
+      <div class="product-name-te">${p.nameTe}</div>
+      <div class="product-price">₹${p.price}/${p.unit}</div>
+    </div>`;
+  }).join('');
+}
+function filterProducts(v){initProducts(v);}
+
+function addToCart(id) {
+  const prod=PRODUCTS.find(p=>p.id===id);
+  if(!prod||prod.stock===0)return;
+  const vid=String(id);
+  const ex=cart.find(c=>c.variantId===vid);
+  if(ex) ex.qty++;
+  else cart.push({...prod,qty:1,variantId:vid});
+  renderBill(); initProducts(document.querySelector('.product-search').value);
+}
+
+function addToCartWeight(id, label) {
+  const prod=PRODUCTS.find(p=>p.id===id);
+  if(!prod||prod.stock===0)return;
+  const w=prod.weights.find(x=>x.label===label);
+  if(!w)return;
+  const vid=id+'-'+label;
+  const ex=cart.find(c=>c.variantId===vid);
+  if(ex) ex.qty++;
+  else cart.push({id, variantId:vid, name:prod.name+' ('+label+')', nameTe:prod.nameTe, emoji:prod.emoji, price:w.price, cost:prod.cost, unit:label, qty:1, stock:prod.stock, cat:prod.cat});
+  renderBill(); initProducts(document.querySelector('.product-search').value);
+}
+
+function changeQty(vid,delta) {
+  const item=cart.find(c=>c.variantId===vid);
+  if(!item)return;
+  item.qty+=delta;
+  if(item.qty<=0) cart=cart.filter(c=>c.variantId!==vid);
+  renderBill(); initProducts(document.querySelector('.product-search').value);
+}
+
+function renderBill() {
+  const container=document.getElementById('bill-items');
+  const sub=cart.reduce((s,c)=>s+c.price*c.qty,0);
+  document.getElementById('bill-count').textContent=cart.length+' item'+(cart.length!==1?'s':'');
+  if(cart.length===0){
+    container.innerHTML='<div class="bill-empty">Add items from the left →</div>';
+  } else {
+    container.innerHTML=cart.map(c=>`
+      <div class="bill-item">
+        <span class="product-emoji" style="font-size:18px">${c.emoji}</span>
+        <span class="bill-item-name">${c.name}</span>
+        <div class="bill-item-qty">
+          <button class="qty-btn" onclick="changeQty('${c.variantId}',-1)">−</button>
+          <span class="qty-num">${c.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${c.variantId}',1)">+</button>
+        </div>
+        <span class="bill-item-total">₹${c.price*c.qty}</span>
+        <span class="bill-item-del" onclick="changeQty('${c.variantId}',-99)">×</span>
+      </div>`).join('');
+  }
+  document.getElementById('s-sub').textContent='₹'+sub.toFixed(2);
+  document.getElementById('s-total').textContent='₹'+sub.toFixed(2);
+}
+
+function clearBill() {
+  cart=[];
+  document.getElementById('cust-name').value='';
+  document.getElementById('cust-phone').value='';
+  document.getElementById('cust-occasion').value='';
+  document.getElementById('upi-ref').value='';
+  renderBill(); initProducts();
+}
+
+function buildBillData() {
+  const name=document.getElementById('cust-name').value||'Walk-in Customer';
+  const phone=document.getElementById('cust-phone').value.trim();
+  const occasion=document.getElementById('cust-occasion').value;
+  const upiRef=document.getElementById('upi-ref').value.trim();
+  const total=cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const now=new Date();
+  return {name,phone,occasion,upiRef,total,now,items:[...cart]};
+}
+
+function recordBill(d) {
+  billCount++;
+  salesTotal+=d.total;
+  const profit = d.items.reduce((s,c)=> s + (c.price - (c.cost||0)) * c.qty, 0);
+  if(payMode==='cash') cashTotal+=d.total;
+  else upiTotal+=d.total;
+  const itemsDetail = d.items.map(c=>({
+    id:c.id, name:c.name, nameTe:c.nameTe||'', price:c.price, cost:c.cost||0, qty:c.qty
+  }));
+  d.items.forEach(c=>{
+    itemSales[c.name]=(itemSales[c.name]||0)+c.qty;
+  });
+  transactions.push({
+    id:billCount, customer:d.name, occasion:d.occasion||'—',
+    items: itemsDetail, itemsLabel: d.items.length+' item'+(d.items.length!==1?'s':''),
+    payMode, upiRef:d.upiRef, total:d.total, profit, timestamp: Date.now()
+  });
+  updateStats(); updateReport(); updateTxnTable();
+  renderAnalyticsAll();
+  renderValueDashboard();
+  saveData();
+}
+
+function updateStats() {
+  document.getElementById('stat-sales').textContent='₹'+salesTotal.toLocaleString('en-IN');
+  document.getElementById('stat-cash').textContent='₹'+cashTotal.toLocaleString('en-IN');
+  document.getElementById('stat-upi').textContent='₹'+upiTotal.toLocaleString('en-IN');
+  document.getElementById('stat-bills').textContent=billCount;
+}
+
+function updateReport() {
+  document.getElementById('r-total').textContent='₹'+salesTotal.toLocaleString('en-IN');
+  document.getElementById('r-bills').textContent=billCount;
+  document.getElementById('r-cash').textContent='₹'+cashTotal.toLocaleString('en-IN');
+  document.getElementById('r-upi').textContent='₹'+upiTotal.toLocaleString('en-IN');
+  const cashPct=salesTotal>0?Math.round(cashTotal/salesTotal*100):50;
+  document.getElementById('bar-cash').style.width=cashPct+'%';
+  document.getElementById('bar-upi').style.width=(100-cashPct)+'%';
+  const sorted=Object.entries(itemSales).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const max=sorted[0]?sorted[0][1]:1;
+  const topDiv=document.getElementById('top-items');
+  if(sorted.length===0){
+    topDiv.innerHTML='<div style="color:var(--muted);font-size:13px">No sales yet today</div>';
+  } else {
+    topDiv.innerHTML=sorted.map(([name,qty])=>`
+      <div class="top-item-row">
+        <div class="top-item-label">${name}</div>
+        <div class="top-item-bar-bg"><div class="top-item-bar" style="width:${Math.round(qty/max*100)}%"></div></div>
+        <div class="top-item-val">${qty} sold</div>
+      </div>`).join('');
+  }
+}
+
+function updateTxnTable() {
+  const empty=document.getElementById('txn-empty');
+  const table=document.getElementById('txn-table');
+  const body=document.getElementById('txn-body');
+  if(transactions.length===0){empty.style.display='block';table.style.display='none';return;}
+  empty.style.display='none'; table.style.display='table';
+  body.innerHTML=transactions.map(t=>`
+    <tr>
+      <td>#${t.id}</td>
+      <td>${t.customer}</td>
+      <td style="color:var(--muted)">${t.occasion}</td>
+      <td style="color:var(--muted)">${t.itemsLabel}</td>
+      <td><span class="pay-badge ${t.payMode}">${t.payMode==='upi'?'📱 UPI':'💵 Cash'}${t.upiRef?' · '+t.upiRef:''}</span></td>
+      <td style="font-weight:600">₹${t.total}</td>
+    </tr>`).join('');
+}
+
+function buildReceiptHTML(d, mode) {
+  const timeStr=d.now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const dateStr=d.now.toLocaleDateString('en-IN');
+  const rows=d.items.map(c=>`<div class="receipt-row"><span>${c.emoji} ${c.name} × ${c.qty}</span><span>₹${c.price*c.qty}</span></div>`).join('');
+  const payLabel=mode==='upi'?`📱 UPI${d.upiRef?' (Ref: '+d.upiRef+')':''}`:'💵 Cash';
+  return `
+    <div class="receipt-logo">
+      <div>🪔 Shalini Pooja Store</div>
+      <small>Beside Ashta Laxmi Temple, Kothapet, Hyderabad</small>
+    </div>
+    <hr class="receipt-divider">
+    <div class="receipt-row"><span><b>${d.name}</b></span><span style="color:var(--muted)">${d.occasion||''}</span></div>
+    <div class="receipt-row" style="color:var(--muted);font-size:12px"><span>Bill #${billCount}</span><span>${dateStr}, ${timeStr}</span></div>
+    <hr class="receipt-divider">
+    ${rows}
+    <div class="receipt-total"><span>Total</span><span style="color:var(--saffron)">₹${d.total.toFixed(2)}</span></div>
+    <div style="text-align:center;margin-top:8px"><span class="receipt-pay-mode ${mode}">${payLabel}</span></div>
+    <div class="receipt-footer">🙏 Thank you! Come again<br>Jay Shri Ram</div>
+    <div class="receipt-btns">
+      <button class="receipt-close" onclick="closeReceipt()">Done</button>
+      <button class="receipt-wa" onclick="sendWhatsApp('${encodeURIComponent(buildWAMsg(d,mode))}','${d.phone}')">📲 WhatsApp</button>
+    </div>`;
+}
+
+function buildWAMsg(d, mode) {
+  const timeStr=d.now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const dateStr=d.now.toLocaleDateString('en-IN');
+  const lines=d.items.map(c=>`  ${c.emoji} ${c.name} × ${c.qty} — ₹${c.price*c.qty}`).join('\n');
+  const payInfo=mode==='upi'?`UPI${d.upiRef?' (Ref: '+d.upiRef+')':''}`:'Cash';
+  return `🪔 *Shalini Pooja Store*\nBeside Ashta Laxmi Temple, Kothapet, Hyderabad\n\n` +
+    `Bill #${billCount} | ${dateStr}, ${timeStr}\n` +
+    `Customer: *${d.name}*${d.occasion?' | '+d.occasion:''}\n\n` +
+    `${lines}\n\n` +
+    `*Total: ₹${d.total.toFixed(2)}*\n` +
+    `Payment: ${payInfo}\n\n` +
+    `🙏 Thank you! Jay Shri Ram`;
+}
+
+function sendWhatsApp(msgEncoded, phone) {
+  const num=phone.replace(/\D/g,'');
+  const base=num?`https://wa.me/91${num}`:'https://wa.me/';
+  window.open(base+'?text='+msgEncoded,'_blank');
+}
+
+function printBill() {
+  if(cart.length===0){showToast('Add items to the bill first!');return;}
+  const d=buildBillData();
+  recordBill(d);
+  document.getElementById('receipt-content').innerHTML=buildReceiptHTML(d,payMode);
+  document.getElementById('receipt-overlay').classList.add('show');
+  clearBill();
+}
+
+function whatsappBill() {
+  if(cart.length===0){showToast('Add items first!');return;}
+  const d=buildBillData();
+  recordBill(d);
+  const msg=buildWAMsg(d,payMode);
+  sendWhatsApp(encodeURIComponent(msg),d.phone);
+  showToast('Opening WhatsApp...');
+  clearBill();
+}
+
+function closeReceipt() {
+  document.getElementById('receipt-overlay').classList.remove('show');
+}
+
+function whatsappReport() {
+  const today=new Date().toLocaleDateString('en-IN');
+  const sorted=Object.entries(itemSales).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const topStr=sorted.length>0?'\nTop items: '+sorted.map(([n,q])=>n+' ('+q+')').join(', '):'';
+  const msg=`🪔 *Shalini Pooja Store — Daily Report*\n${today}\n\n` +
+    `💰 Total Sales: ₹${salesTotal.toLocaleString('en-IN')}\n` +
+    `💵 Cash: ₹${cashTotal.toLocaleString('en-IN')}\n` +
+    `📱 UPI: ₹${upiTotal.toLocaleString('en-IN')}\n` +
+    `🧾 Bills: ${billCount}${topStr}\n\n` +
+    `_Generated by Shalini Store App_`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+function editCost(id) {
+  const p=PRODUCTS.find(x=>x.id===id);
+  if(!p)return;
+  const v=prompt(`Enter cost price for ${p.name} (${p.nameTe}):`, p.cost||0);
+  if(v===null)return;
+  const n=parseFloat(v);
+  if(isNaN(n)||n<0){showToast('Invalid cost');return;}
+  p.cost=n;
+  initInventory(document.querySelector('.inv-search')?.value||'');
+  saveData(); renderAnalyticsAll();
+  showToast(`Cost for ${p.name} set to ₹${n}`);
+}
+
+function showLowStock() {
+  inventoryLowFilter=true;
+  switchTab('inventory', document.querySelector('.nav-btn[onclick*="inventory"]'));
+  initInventory(document.querySelector('.inv-search')?.value||'');
+}
+
+function clearLowFilter() {
+  inventoryLowFilter=false;
+  initInventory(document.querySelector('.inv-search')?.value||'');
+}
+
+function initInventory(filter='') {
+  let items=PRODUCTS.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase()));
+  if(inventoryLowFilter) items=items.filter(p=>p.stock<=5);
+  const body=document.getElementById('inv-body');
+  const f=items;
+  let low=0;
+  body.innerHTML=f.map(p=>{
+    let badge,status;
+    if(p.stock===0){badge='stock-out';status='Out of Stock';low++;}
+    else if(p.stock<=5){badge='stock-low';status='Low Stock';low++;}
+    else{badge='stock-ok';status='In Stock';}
+    return `<tr>
+      <td><span style="margin-right:6px">${p.emoji}</span><span class="name-en-te">${p.name} <small>${p.nameTe}</small></span></td>
+      <td style="color:var(--muted)">${p.cat}</td>
+      <td>${p.hasWeights?'By weight':('₹'+p.price+'/'+p.unit)}</td>
+      <td><a href="#" onclick="editCost(${p.id});return false" style="color:var(--saffron);text-decoration:none;font-weight:500">₹${p.cost||0}</a></td>
+      <td>${p.stock} ${p.unit}s</td>
+      <td><span class="stock-badge ${badge}">${status}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('stat-low').textContent=low;
+  const banner=document.getElementById('low-stock-banner');
+  if(banner) banner.style.display=inventoryLowFilter?'flex':'none';
+}
+function filterInventory(v){
+  if(inventoryLowFilter&&v.length>0) inventoryLowFilter=false;
+  initInventory(v);
+}
+
+function initCustomers() {
+  document.getElementById('cust-grid').innerHTML=CUSTOMERS.map(c=>{
+    const i=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="cust-card">
+      <div class="cust-header">
+        <div class="cust-avatar">${i}</div>
+        <div><div class="cust-name">${c.name}</div><div class="cust-phone">${c.nameTe} · ${c.phone}</div></div>
+      </div>
+      <div class="cust-stats">
+        <div class="cust-stat"><div class="cust-stat-val">${c.visits}</div><div class="cust-stat-label">Visits</div></div>
+        <div class="cust-stat"><div class="cust-stat-val">₹${c.spent}</div><div class="cust-stat-label">Spent</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)">Usual: <span class="occasion-tag">${c.occasion}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function goToTab(tab) {
+  const btn = document.querySelector(`.nav-btn[onclick*="${tab}"]`);
+  if(btn) switchTab(tab, btn);
+}
+
+function switchTab(tab,btn) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+/* ─── Analytics ─── */
+
+function setRevenuePeriod(p) {
+  revPeriod=p;
+  document.querySelectorAll('.rev-opt').forEach(b=>b.classList.toggle('active',b.getAttribute('onclick')?.includes(`'${p}'`)));
+  renderRevenueTally(p);
+}
+
+function getPeriodRange(p) {
+  const now=Date.now();
+  switch(p){
+    case 'day':   return {start: new Date().setHours(0,0,0,0), end: now};
+    case 'week':  return {start: now - 7*86400000, end: now};
+    case 'month': return {start: now - 30*86400000, end: now};
+    case 'year':  return {start: now - 365*86400000, end: now};
+    case 'all':   return {start: 0, end: now};
+    default:      return {start: new Date().setHours(0,0,0,0), end: now};
+  }
+}
+
+function renderRevenueTally(p) {
+  const r=getPeriodRange(p);
+  const txns=transactions.filter(t=>t.timestamp>=r.start&&t.timestamp<=r.end);
+  const total=txns.reduce((s,t)=>s+t.total,0);
+  const cash=txns.filter(t=>t.payMode==='cash').reduce((s,t)=>s+t.total,0);
+  const upi=txns.filter(t=>t.payMode==='upi').reduce((s,t)=>s+t.total,0);
+  const bills=txns.length;
+  const periodNames={day:'Today',week:'Past 7 Days',month:'Past 30 Days',year:'Past 365 Days',all:'All Time'};
+  document.getElementById('a-rev-total').textContent='₹'+total.toLocaleString('en-IN');
+  document.getElementById('a-rev-bills').textContent=bills;
+  document.getElementById('a-rev-cash').textContent='₹'+cash.toLocaleString('en-IN');
+  document.getElementById('a-rev-upi').textContent='₹'+upi.toLocaleString('en-IN');
+  document.getElementById('a-rev-period').textContent=periodNames[p]||'Today';
+  const cpct=total>0?Math.round(cash/total*100):50;
+  document.getElementById('a-bar-cash').style.width=cpct+'%';
+  document.getElementById('a-bar-upi').style.width=(100-cpct)+'%';
+
+  // Top items in period
+  const itemMap={};
+  txns.forEach(t=>(t.items||[]).forEach(item=>{
+    const k=item.name;
+    if(!itemMap[k])itemMap[k]={name:k,nameTe:item.nameTe||'',qty:0};
+    itemMap[k].qty+=item.qty;
+  }));
+  const sorted=Object.values(itemMap).sort((a,b)=>b.qty-a.qty).slice(0,5);
+  const maxQ=sorted[0]?.qty||1;
+  const div=document.getElementById('a-rev-top-items');
+  if(sorted.length===0){
+    div.innerHTML='<div class="a-empty">No sales in this period</div>';
+  } else {
+    div.innerHTML=sorted.map(item=>`
+      <div class="top-item-row">
+        <div class="top-item-label">${item.name} <small style="color:var(--muted)">${item.nameTe}</small></div>
+        <div class="top-item-bar-bg"><div class="top-item-bar" style="width:${Math.round(item.qty/maxQ*100)}%"></div></div>
+        <div class="top-item-val">${item.qty} sold</div>
+      </div>`).join('');
+  }
+}
+
+function renderCustomerAnalytics() {
+  // by revenue
+  const revMap={};
+  transactions.forEach(t=>{
+    if(!revMap[t.customer])revMap[t.customer]={name:t.customer,revenue:0,profit:0,count:0};
+    revMap[t.customer].revenue+=t.total;
+    revMap[t.customer].profit+=t.profit||0;
+    revMap[t.customer].count++;
+  });
+  const byRev=Object.values(revMap).sort((a,b)=>b.revenue-a.revenue).slice(0,10);
+  const byProfit=Object.values(revMap).sort((a,b)=>b.profit-a.profit).slice(0,10);
+  const maxRev=byRev[0]?.revenue||1;
+  const maxProf=byProfit[0]?.profit||1;
+
+  const makeRow=(c,i,isProfit)=>{
+    const val=isProfit?c.profit:c.revenue;
+    const maxV=isProfit?maxProf:maxRev;
+    return `<tr>
+      <td class="rank">#${i+1}</td>
+      <td><span class="name-en-te">${c.name}</span></td>
+      <td class="num">₹${val.toLocaleString('en-IN')}</td>
+      <td><div class="profit-bar-bg"><div class="profit-bar" style="width:${Math.round(val/maxV*100)}%"></div></div></td>
+    </tr>`;
+  };
+
+  const revDiv=document.getElementById('a-top-revenue');
+  if(byRev.length===0){
+    revDiv.innerHTML='<div class="a-empty">No data yet. Start billing!</div>';
+  } else {
+    revDiv.innerHTML=`<table class="a-table"><thead><tr><th>#</th><th>Customer</th><th>Revenue</th><th></th></tr></thead><tbody>${byRev.map((c,i)=>makeRow(c,i,0)).join('')}</tbody></table>`;
+  }
+
+  const profDiv=document.getElementById('a-top-profit');
+  if(byProfit.length===0){
+    profDiv.innerHTML='<div class="a-empty">No data yet. Set cost prices first!</div>';
+  } else {
+    profDiv.innerHTML=`<table class="a-table"><thead><tr><th>#</th><th>Customer</th><th>Profit</th><th></th></tr></thead><tbody>${byProfit.map((c,i)=>makeRow(c,i,1)).join('')}</tbody></table>`;
+  }
+}
+
+function renderItemAnalytics() {
+  const past30=Date.now()-30*86400000;
+  const txns=transactions.filter(t=>t.timestamp>=past30);
+  const itemMap={};
+  txns.forEach(t=>(t.items||[]).forEach(item=>{
+    const k=item.name;
+    if(!itemMap[k])itemMap[k]={name:k,nameTe:item.nameTe||'',qty:0,revenue:0};
+    itemMap[k].qty+=item.qty;
+    itemMap[k].revenue+=item.price*item.qty;
+  }));
+  const all=Object.values(itemMap);
+  const byQty=[...all].sort((a,b)=>b.qty-a.qty);
+  const most=byQty.slice(0,10);
+  const least=byQty.filter(i=>i.qty>0).sort((a,b)=>a.qty-b.qty).slice(0,10);
+  const maxM=most[0]?.qty||1;
+
+  const row=(item,showRev)=>{
+    return `<tr>
+      <td><span class="name-en-te">${item.name} <small>${item.nameTe}</small></span></td>
+      <td class="num">${item.qty}</td>
+      ${showRev?`<td class="num">₹${item.revenue.toLocaleString('en-IN')}</td>`:''}
+    </tr>`;
+  };
+
+  const mostDiv=document.getElementById('a-most-sold');
+  if(most.length===0){
+    mostDiv.innerHTML='<div class="a-empty">No data yet.</div>';
+  } else {
+    mostDiv.innerHTML=`<table class="a-table"><thead><tr><th>Item</th><th>Qty Sold</th></tr></thead><tbody>${most.map(i=>row(i,0)).join('')}</tbody></table>`;
+  }
+
+  const leastDiv=document.getElementById('a-least-sold');
+  if(least.length===0){
+    leastDiv.innerHTML='<div class="a-empty">No data yet.</div>';
+  } else {
+    leastDiv.innerHTML=`<table class="a-table"><thead><tr><th>Item</th><th>Qty Sold</th></tr></thead><tbody>${least.map(i=>row(i,0)).join('')}</tbody></table>`;
+  }
+}
+
+function renderProfitSources() {
+  const past30=Date.now()-30*86400000;
+  const txns=transactions.filter(t=>t.timestamp>=past30);
+  const itemMap={};
+  txns.forEach(t=>(t.items||[]).forEach(item=>{
+    const k=item.name;
+    if(!itemMap[k])itemMap[k]={name:k,nameTe:item.nameTe||'',qty:0,profit:0,revenue:0};
+    itemMap[k].qty+=item.qty;
+    itemMap[k].profit+=(item.price-(item.cost||0))*item.qty;
+    itemMap[k].revenue+=item.price*item.qty;
+  }));
+  const all=Object.values(itemMap).filter(i=>i.profit!==0);
+  const byProfit=[...all].sort((a,b)=>b.profit-a.profit);
+  const most=byProfit.slice(0,10);
+  const least=[...all].filter(i=>i.profit>0).sort((a,b)=>a.profit-b.profit).slice(0,10);
+  const maxP=most[0]?.profit||1;
+
+  const row=(item)=>{
+    const pct=item.revenue>0?Math.round(item.profit/item.revenue*100):0;
+    return `<tr>
+      <td><span class="name-en-te">${item.name} <small>${item.nameTe}</small></span></td>
+      <td class="num">₹${item.profit.toLocaleString('en-IN')}</td>
+      <td class="pct">${pct}% margin</td>
+      <td><div class="profit-bar-bg"><div class="profit-bar" style="width:${Math.max(1,Math.round(Math.abs(item.profit)/maxP*100))}%"></div></div></td>
+    </tr>`;
+  };
+
+  const mostDiv=document.getElementById('a-profit-most');
+  if(most.length===0){
+    mostDiv.innerHTML='<div class="a-empty">Set cost prices in Inventory first.</div>';
+  } else {
+    mostDiv.innerHTML=`<table class="a-table"><thead><tr><th>Item</th><th>Profit</th><th>Margin</th><th></th></tr></thead><tbody>${most.map(row).join('')}</tbody></table>`;
+  }
+
+  const leastDiv=document.getElementById('a-profit-least');
+  if(least.length===0){
+    leastDiv.innerHTML='<div class="a-empty">Set cost prices in Inventory first.</div>';
+  } else {
+    leastDiv.innerHTML=`<table class="a-table"><thead><tr><th>Item</th><th>Profit</th><th>Margin</th><th></th></tr></thead><tbody>${least.map(row).join('')}</tbody></table>`;
+  }
+}
+
+function renderItemwiseView() {
+  const itemMap={};
+  transactions.forEach(t=>(t.items||[]).forEach(item=>{
+    const k=item.name;
+    if(!itemMap[k])itemMap[k]={name:k,nameTe:item.nameTe||'',qty:0,revenue:0,profit:0,cost:0};
+    itemMap[k].qty+=item.qty;
+    itemMap[k].revenue+=item.price*item.qty;
+    itemMap[k].profit+=(item.price-(item.cost||0))*item.qty;
+  }));
+  const all=Object.values(itemMap).sort((a,b)=>b.qty-a.qty);
+  const div=document.getElementById('a-itemwise');
+  if(all.length===0){
+    div.innerHTML='<div class="a-empty">No data yet.</div>';
+  } else {
+    div.innerHTML=`<table class="a-table"><thead><tr>
+      <th>Item</th><th>Qty Sold</th><th>Revenue</th><th>Profit</th><th>Margin</th>
+    </tr></thead><tbody>${
+      all.map(item=>{
+        const margin=item.revenue>0?Math.round(item.profit/item.revenue*100):0;
+        return `<tr>
+          <td><span class="name-en-te">${item.name} <small>${item.nameTe}</small></span></td>
+          <td class="num">${item.qty}</td>
+          <td class="num">₹${item.revenue.toLocaleString('en-IN')}</td>
+          <td class="num">₹${item.profit.toLocaleString('en-IN')}</td>
+          <td class="pct">${margin}%</td>
+        </tr>`;
+      }).join('')
+    }</tbody></table>`;
+  }
+}
+
+function renderAnalyticsAll() {
+  renderCustomerAnalytics();
+  renderRevenueTally(revPeriod);
+  renderItemAnalytics();
+  renderProfitSources();
+  renderItemwiseView();
+}
+
+function renderValueDashboard() {
+  const txns = transactions;
+  const billCount = txns.length;
+  const daysActiveSet = new Set();
+  const uniqueCustomers = new Set();
+  txns.forEach(t => {
+    daysActiveSet.add(new Date(t.timestamp).toDateString());
+    if (t.customer && t.customer !== 'Walk-in Customer') uniqueCustomers.add(t.customer);
+  });
+  const daysActive = Math.max(1, daysActiveSet.size);
+  const monthsActive = Math.max(1, Math.round(daysActive / 25));
+
+  // Conservative time savings per task (minutes)
+  const SAVINGS = {
+    billing:     { min: 3.25, label: '🧾 Digital Billing', desc: '4 min → 45 sec per bill', color: 'var(--saffron)' },
+    reporting:   { min: 37,   label: '📊 Daily Reports',   desc: '40 min → 3 min per day', color: 'var(--green)' },
+    inventory:   { min: 23,   label: '📦 Inventory Checks', desc: '25 min → 2 min per day', color: 'var(--gold)' },
+    customers:   { min: 20,   label: '👥 Customer Tracking',desc: '20 min → auto per visit', color: 'var(--upi)' },
+    pnl:         { min: 180,  label: '💰 Monthly P&L',     desc: '3 hrs → instant per month', color: 'var(--maroon)' },
+  };
+
+  const billingTime   = billCount * SAVINGS.billing.min;
+  const reportingTime = daysActive * SAVINGS.reporting.min;
+  const invTime       = daysActive * SAVINGS.inventory.min;
+  const custTime      = uniqueCustomers.size * SAVINGS.customers.min;
+  const pnlTime       = monthsActive * SAVINGS.pnl.min;
+  const totalMin      = billingTime + reportingTime + invTime + custTime + pnlTime;
+  const totalHrs      = Math.round(totalMin / 60 * 10) / 10;
+  const workdays      = Math.floor(totalHrs / 8);
+
+  const hourlyRate = 500;
+  const timeValue  = Math.round(totalHrs * hourlyRate);
+  const posSavings = monthsActive * 3000;
+  const totalValue = timeValue + posSavings;
+
+  const Y = 15;
+  const feeAmt = Math.round(totalValue * Y / 100);
+
+  // Render hero
+  document.getElementById('vd-hero-amt').textContent = '₹' + totalValue.toLocaleString('en-IN');
+  document.getElementById('vd-hours').textContent = totalHrs + ' hrs';
+  document.getElementById('vd-workdays').textContent = workdays;
+  document.getElementById('vd-bills').textContent = billCount;
+  document.getElementById('vd-customers').textContent = uniqueCustomers.size;
+
+  // Render breakdown
+  const breakdowns = [
+    {key:'billing',   val: billingTime,   desc: SAVINGS.billing.desc},
+    {key:'reporting', val: reportingTime, desc: SAVINGS.reporting.desc},
+    {key:'inventory', val: invTime,       desc: SAVINGS.inventory.desc},
+    {key:'customers', val: custTime,      desc: SAVINGS.customers.desc},
+    {key:'pnl',       val: pnlTime,       desc: SAVINGS.pnl.desc},
+  ];
+  const maxTime = Math.max(...breakdowns.map(b => b.val), 1);
+  const breakdownDiv = document.getElementById('vd-breakdown');
+  breakdownDiv.innerHTML = breakdowns.map(b => `
+    <div class="value-break-row">
+      <span class="icon">${SAVINGS[b.key].label.split(' ')[0]}</span>
+      <span class="label">${SAVINGS[b.key].label.replace(/^[^\s]+\s/,'')}</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(b.val/maxTime*100)}%;background:${SAVINGS[b.key].color}"></div></div>
+      <div class="val">${Math.round(b.val)} min <small style="color:var(--muted)">${b.desc}</small></div>
+    </div>
+  `).join('');
+
+  // Render pitch
+  document.getElementById('vd-pitch-value').textContent = '₹' + timeValue.toLocaleString('en-IN');
+  document.getElementById('vd-pitch-total').textContent = '₹' + totalValue.toLocaleString('en-IN');
+  document.getElementById('vd-fee-amt').textContent = '₹' + feeAmt.toLocaleString('en-IN');
+}
+
+const today=new Date();
+document.getElementById('report-date').textContent=today.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+if(loadData()){ updateStats(); updateReport(); updateTxnTable(); }
+initProducts(); initInventory(); initCustomers(); renderAnalyticsAll(); renderValueDashboard();
+</script>

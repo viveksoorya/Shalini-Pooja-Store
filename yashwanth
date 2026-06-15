@@ -1,6 +1,7 @@
 Yashwanth's requirements
 Yashwanth runs a pooja store; he needs to track inventory, customers and also do billing; 
 [] inventory management; periodic reminders for expirable items; product cost prices variations;
+[x] indications for items that are low on stock
 [] customer management; names of customers; how much business do they do; rank them by volume of business;
 [] billing management; basic billing;
 
@@ -15,7 +16,7 @@ what is the item that sold the most last month
 what is the item that did not sell as much as expected last month
 
 INVENTORY
-weighted items ki, after clicking in the billing, it has to show options to select the weight, then after selecting the option, the item goes to bill
+[x] weighted items ki, after clicking in the billing, it has to show options to select the weight, then after selecting the option, the item goes to bill
 
 CUSTOMER ANALYTICS
 which customer does the most business for us;
@@ -36,3 +37,9 @@ phone number
 address
 prorieters: names and photos
 history
+
+
+VALUE GENERATED
+time saved in accounting and tracking items
+faster response time to customers; 
+errors of low stock reduced
